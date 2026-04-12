@@ -2,10 +2,12 @@
 .env
 .env.local
 .env.production
+backend/.env
 
 # Dependencies
 node_modules/
 vendor/
+backend/vendor/
 
 # Build artifacts
 dist/
@@ -23,10 +25,11 @@ build/
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-logs/
+# Laravel
+backend/storage/
+backend/bootstrap/cache/
 
 # Temporary
 tmp/
 temp/
+*.log
