@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// API Health Check
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'timestamp' => now()]);
+});
+
 // SPA Fallback - alle Routes gehen zur Vue App
 Route::get('/{any}', function () {
     return view('app');
