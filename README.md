@@ -1,177 +1,123 @@
-# Inventarverwaltung
+# Inventarverwaltung - Production Deployment
 
-Webbasierte Inventarverwaltung mit Vue.js Frontend, Laravel Backend und MariaDB Datenbank.
+## 📦 Schnelles Deployment auf Hostinger VPS
 
-## 🚀 Quick Start
-
-### Mit Docker (Empfohlen)
+### Ein-Befehl-Installation
 
 ```bash
-# Repository klonen
-git clone https://github.com/swissneo85/inventarverwaltung.git
-cd inventarverwaltung
+# SSH auf deinen Server
+ssh user@your-server
 
-# Start-Script ausführen
-chmod +x start.sh
-./start.sh
+# Herunterladen und installieren
+git clone https://github.com/swissneo85/inventarverwaltung.git \
+&& cd inventarverwaltung \
+&& chmod +x deploy.sh \
+&& ./deploy.sh
 ```
 
-### Manuell
+Das war's! Das Script macht alles automatisch:
+- ✅ Docker prüfen
+- ✅ Passwörter generieren
+- ✅ Frontend bauen
+- ✅ Backend Dependencies installieren
+- ✅ Container starten
+- ✅ Datenbank initialisieren
+- ✅ Admin-User erstellen
 
-```bash
-# 1. .env erstellen
-cp .env.example .env
-cp backend/.env.example backend/.env
+---
 
-# 2. Container starten
-docker-compose up -d
+## 🌐 Nach der Installation
 
-# 3. Datenbank initialisieren (warten bis DB bereit ist)
-docker-compose exec backend php artisan key:generate
-docker-compose exec backend php artisan migrate
-docker-compose exec backend php artisan db:seed
+| URL | Beschreibung |
+|-----|-------------|
+| `http://deine-ip` | Inventarverwaltung |
+| Port 80 | HTTP (Standard) |
+| Port 443 | HTTPS (nach SSL Setup) |
 
-# 4. Frontend für Entwicklung starten (optional)
-docker-compose --profile dev up frontend-dev
-```
+### Standard-Login
 
-## 🌐 Zugriff
+| Benutzer | Passwort |
+|---------|---------|
+| admin | admin123 |
 
-- **Frontend (Dev):** http://localhost:3000
-- **Backend API:** http://localhost:8080/api
-- **Datenbank:** localhost:3306
+⚠️ **Sofort ändern!**
 
-## 🔑 Standard-Login
+---
 
-| Rolle | Benutzer | Passwort |
-|-------|---------|----------|
-| Admin | admin | admin123 |
-| User | max | password |
-
-## 📦 Docker Services
-
-| Service | Port | Beschreibung |
-|---------|------|-------------|
-| `db` | 3306 | MariaDB 11.2 |
-| `backend` | 8080 | Laravel API (PHP 8.2 + Nginx) |
-| `frontend-dev` | 3000 | Vue.js Dev Server (Hot Reload) |
-
-## 🛠️ Entwicklung
-
-### Backend (Laravel)
-
-```bash
-# In Container einloggen
-docker-compose exec backend sh
-
-# Artisan Commands
-php artisan migrate
-php artisan db:seed
-php artisan tinker
-
-# Neue Migration erstellen
-php artisan make:migration create_xxx_table
-```
-
-### Frontend (Vue.js)
-
-```bash
-# Dependencies installieren
-cd frontend
-npm install
-
-# Dev Server
-npm run dev
-
-# Production Build
-npm run build
-```
-
-## 📁 Projektstruktur
-
-```
-inventarverwaltung/
-├── backend/                 # Laravel 11 API
-│   ├── app/
-│   │   ├── Http/
-│   │   │   └── Controllers/Api/
-│   │   ├── Models/
-│   │   └── Http/Middleware/
-│   ├── database/
-│   │   ├── migrations/
-│   │   └── seeders/
-│   ├── routes/
-│   │   └── api.php
-│   └── Dockerfile
-├── frontend/                # Vue.js 3 SPA
-│   ├── src/
-│   │   ├── components/
-│   │   ├── views/
-│   │   ├── stores/
-│   │   ├── services/
-│   │   └── router/
-│   └── Dockerfile
-├── docker-compose.yml
-├── start.sh
-└── README.md
-```
-
-## ✨ Features
-
-- **Räume, Boxen & Items** mit sichtbaren IDs (R1, B1, I1)
-- **QR-Code** Unterstützung für schnelles Scannen
-- **Inbox** für nicht zugeordnete Gegenstände
-- **Kategorien & Rechteverwaltung**
-- **Responsive Design** (Desktop + Mobile)
-- **Listen- & Tabellenansicht**
-- **Globale Suche** mit Display-ID
-- **Garantie-Tracking**
-- **Login-Protokoll** für Sicherheit
-
-## 🔧 API Endpunkte
-
-| Methode | Endpoint | Beschreibung |
-|---------|----------|--------------|
-| POST | `/api/login` | Login |
-| POST | `/api/logout` | Logout |
-| GET | `/api/me` | Aktueller Benutzer |
-| GET | `/api/items` | Alle Items |
-| POST | `/api/items` | Item erstellen |
-| GET | `/api/items/{id}` | Item anzeigen |
-| PUT | `/api/items/{id}` | Item bearbeiten |
-| DELETE | `/api/items/{id}` | Item löschen |
-| POST | `/api/scan` | QR-Code scannen |
-| GET | `/api/dashboard/stats` | Statistiken |
-
-## 📝 Konfiguration
-
-### Umgebungsvariablen (.env)
-
-```env
-# App
-APP_NAME=Inventarverwaltung
-APP_URL=http://localhost:8080
-FRONTEND_URL=http://localhost:3000
-
-# Database
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=inventar
-DB_USERNAME=inventar
-DB_PASSWORD=inventar_secret
-```
-
-## 🛑 Stoppen
+## 🔧 Manuelle Befehle
 
 ```bash
 # Container stoppen
-docker-compose down
+docker-compose -f docker-compose.prod.yml down
 
-# Mit Volume löschung
-docker-compose down -v
+# Container starten
+docker-compose -f docker-compose.prod.yml up -d
+
+# Logs anzeigen
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Neu bauen
+docker-compose -f docker-compose.prod.yml build --no-cache
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## 📄 Lizenz
+---
 
-MIT
+## 🔒 SSL einrichten (optional)
+
+```bash
+# Certbot installieren
+apt install -y certbot
+
+# Zertifikat holen (Port 80 muss frei sein)
+certbot certonly --standalone -d deine-domain.com
+```
+
+---
+
+## 📁 Dateien
+
+| Datei | Beschreibung |
+|------|-------------|
+| `docker-compose.prod.yml` | Production Docker Config |
+| `deploy.sh` | Auto-Install Script |
+| `DEPLOY.md` | Detaillierte Anleitung |
+| `.env.production` | Vorlage für Umgebungsvariablen |
+
+---
+
+## 🐛 Problembehandlung
+
+### Container startet nicht
+
+```bash
+# Logs prüfen
+docker-compose -f docker-compose.prod.yml logs
+
+# Neu bauen
+docker-compose -f docker-compose.prod.yml build --no-cache
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Datenbank-Verbindungsfehler
+
+```bash
+# DB neu starten
+docker-compose -f docker-compose.prod.yml restart db
+docker-compose -f docker-compose.prod.yml restart backend
+```
+
+### White Screen
+
+```bash
+# Rechte setzen
+chmod -R 775 backend/storage
+chmod -R 775 backend/bootstrap/cache
+
+# Cache leeren
+docker exec inventar-backend php artisan cache:clear
+```
+
+---
+
+**Repository:** https://github.com/swissneo85/inventarverwaltung

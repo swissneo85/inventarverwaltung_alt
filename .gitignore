@@ -33,3 +33,9 @@ backend/bootstrap/cache/
 tmp/
 temp/
 *.log
+
+# SSL certificates (use Let's Encrypt)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+!nginx/ssl/.gitkeep
