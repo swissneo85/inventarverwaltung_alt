@@ -1,96 +1,12 @@
-version: '3.8'
-
 services:
-  # MariaDB Database
-  db:
-    image: mariadb:11.2
-    container_name: inventar-db
+  inventarverwaltung:
+    image: ghcr.io/swissneo85/inventarverwaltung:latest
+    container_name: inventarverwaltung
     restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-inventar_root_secret}
-      MYSQL_DATABASE: ${DB_DATABASE:-inventar}
-      MYSQL_USER: ${DB_USERNAME:-inventar}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-inventar_secret}
-    volumes:
-      - db_data:/var/lib/mysql
     ports:
-      - "3306:3306"
-    networks:
-      - inventar-network
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Laravel Backend API
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: inventar-backend
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      APP_NAME: Inventarverwaltung
-      APP_ENV: local
-      APP_KEY: ${APP_KEY:-}
-      APP_DEBUG: "true"
-      APP_URL: ${APP_URL:-http://localhost:8080}
-      
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-inventar}
-      DB_USERNAME: ${DB_USERNAME:-inventar}
-      DB_PASSWORD: ${DB_PASSWORD:-inventar_secret}
-      
-      SESSION_DRIVER: database
-      SESSION_LIFETIME: 120
-      
-      SANCTUM_STATEFUL_DOMAINS: ${FRONTEND_URL:-http://localhost:3000}
-      
-      QUEUE_CONNECTION: database
-      LOG_CHANNEL: stderr
-      LOG_LEVEL: debug
-      
-      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-inventar_root_secret}
+      - "${PORT:-3004}:80"
     volumes:
-      - ./backend:/var/www/html
-      - backend_storage:/var/www/html/storage
-    ports:
-      - "8080:80"
-    networks:
-      - inventar-network
-
-  # Vue.js Frontend (Development with hot reload)
-  frontend-dev:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    container_name: inventar-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
+      - ./data:/app/data
     environment:
-      VITE_API_URL: ${API_URL:-http://localhost:8080}
-      VITE_APP_NAME: Inventarverwaltung
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "3000:3000"
-    networks:
-      - inventar-network
-    profiles:
-      - dev
-
-volumes:
-  db_data:
-  backend_storage:
-
-networks:
-  inventar-network:
-    driver: bridge
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL:-http://localhost:3004}
