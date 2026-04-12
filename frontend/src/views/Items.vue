@@ -1,0 +1,496 @@
+<template>
+  <div class="items-page">
+    <div class="page-header">
+      <h1>Gegenstände</h1>
+      <router-link to="/items/create" class="btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Neuer Gegenstand
+      </router-link>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters-card card">
+      <div class="filters-row">
+        <div class="search-field">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Suchen..."
+            @input="handleSearch"
+          />
+        </div>
+        
+        <select v-model="filters.category_id" @change="fetchItems" class="filter-select">
+          <option value="">Alle Kategorien</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+            {{ cat.name }}
+          </option>
+        </select>
+        
+        <select v-model="filters.room_id" @change="fetchItems" class="filter-select">
+          <option value="">Alle Räume</option>
+          <option v-for="room in rooms" :key="room.id" :value="room.id">
+            {{ room.name }}
+          </option>
+        </select>
+        
+        <button @click="showFilters = !showFilters" class="btn-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          Filter
+        </button>
+      </div>
+      
+      <div v-if="showFilters" class="filters-expanded">
+        <label class="filter-checkbox">
+          <input type="checkbox" v-model="filters.in_inbox" @change="fetchItems">
+          Nur Inbox
+        </label>
+        
+        <label class="filter-checkbox">
+          <input type="checkbox" v-model="filters.warranty_expiring" @change="fetchItems">
+          Garantie läuft ab
+        </label>
+      </div>
+    </div>
+    
+    <!-- View Toggle -->
+    <div class="view-toggle">
+      <button
+        :class="['toggle-btn', { active: viewMode === 'list' }]"
+        @click="viewMode = 'list'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        Liste
+      </button>
+      <button
+        :class="['toggle-btn', { active: viewMode === 'table' }]"
+        @click="viewMode = 'table'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="3" y1="15" x2="21" y2="15"></line>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+        Tabelle
+      </button>
+    </div>
+    
+    <!-- Results -->
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Wird geladen...</p>
+    </div>
+    
+    <div v-else-if="items.length === 0" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+      </svg>
+      <h3>Keine Gegenstände gefunden</h3>
+      <p>Legen Sie Ihren ersten Gegenstand an</p>
+      <router-link to="/items/create" class="btn-primary">
+        Neuer Gegenstand
+      </router-link>
+    </div>
+    
+    <!-- List View -->
+    <div v-else-if="viewMode === 'list'" class="items-list">
+      <ItemCard
+        v-for="item in items"
+        :key="item.id"
+        :item="item"
+      />
+    </div>
+    
+    <!-- Table View -->
+    <div v-else class="card">
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Kategorie</th>
+              <th>Standort</th>
+              <th>Zustand</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in items" :key="item.id">
+              <td><span class="badge primary">I{{ item.id }}</span></td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.category?.name || '-' }}</td>
+              <td>{{ getLocationText(item) }}</td>
+              <td>{{ item.condition || '-' }}</td>
+              <td>
+                <div class="actions">
+                  <router-link :to="`/items/${item.id}`" class="btn-icon-sm" title="Details">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </router-link>
+                  <router-link :to="`/items/${item.id}/edit`" class="btn-icon-sm" title="Bearbeiten">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </router-link>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div v-if="pagination.last_page > 1" class="pagination">
+      <button
+        class="btn-secondary"
+        :disabled="pagination.current_page === 1"
+        @click="changePage(pagination.current_page - 1)"
+      >
+        Zurück
+      </button>
+      <span class="page-info">
+        Seite {{ pagination.current_page }} von {{ pagination.last_page }}
+      </span>
+      <button
+        class="btn-secondary"
+        :disabled="pagination.current_page === pagination.last_page"
+        @click="changePage(pagination.current_page + 1)"
+      >
+        Weiter
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useItemsStore } from '@/stores/items'
+import api from '@/services/api'
+import ItemCard from '@/components/ItemCard.vue'
+import { debounce } from 'lodash'
+
+const route = useRoute()
+const itemsStore = useItemsStore()
+
+const items = ref([])
+const categories = ref([])
+const rooms = ref([])
+const loading = ref(false)
+const showFilters = ref(false)
+const viewMode = ref('list')
+const searchQuery = ref('')
+const filters = ref({
+  category_id: '',
+  room_id: '',
+  in_inbox: false,
+  warranty_expiring: false,
+})
+
+const pagination = ref({
+  current_page: 1,
+  last_page: 1,
+  total: 0,
+  per_page: 50,
+})
+
+onMounted(async () => {
+  // Load categories and rooms
+  try {
+    const [catRes, roomRes] = await Promise.all([
+      api.get('/categories'),
+      api.get('/rooms'),
+    ])
+    categories.value = catRes.data.data
+    rooms.value = roomRes.data.data
+  } catch (error) {
+    console.error('Fehler beim Laden:', error)
+  }
+  
+  // Load items
+  await fetchItems()
+})
+
+const handleSearch = debounce(() => {
+  fetchItems()
+}, 300)
+
+async function fetchItems() {
+  loading.value = true
+  
+  try {
+    const params = {
+      ...filters.value,
+      search: searchQuery.value || undefined,
+      page: pagination.value.current_page,
+      per_page: pagination.value.per_page,
+    }
+    
+    // Remove empty filters
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === false || params[key] === undefined) {
+        delete params[key]
+      }
+    })
+    
+    const response = await api.get('/items', { params })
+    items.value = response.data.data.data || response.data.data
+    
+    if (response.data.data.meta) {
+      pagination.value = {
+        current_page: response.data.data.meta.current_page,
+        last_page: response.data.data.meta.last_page,
+        total: response.data.data.meta.total,
+        per_page: response.data.data.meta.per_page,
+      }
+    }
+  } catch (error) {
+    console.error('Fehler beim Laden:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+function changePage(page) {
+  pagination.value.current_page = page
+  fetchItems()
+}
+
+function getLocationText(item) {
+  if (item.is_in_inbox) return 'Inbox'
+  if (item.box) return `B${item.box.id}`
+  if (item.room) return `R${item.room.id}`
+  return '-'
+}
+</script>
+
+<style lang="scss" scoped>
+.items-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.filters-card {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filters-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  
+  svg {
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+  
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.875rem;
+  }
+}
+
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+  
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+}
+
+.filters-expanded {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+  }
+  
+  &:hover:not(.active) {
+    background: #f3f4f6;
+  }
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  
+  svg {
+    color: #d1d5db;
+    margin-bottom: 1rem;
+  }
+  
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+  }
+  
+  p {
+    color: #6b7280;
+    margin: 0 0 1rem;
+  }
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-icon-sm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  color: #6b7280;
+  transition: all 0.15s;
+  
+  &:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.page-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+  }
+  
+  .filter-select {
+    width: 100%;
+  }
+}
+</style>

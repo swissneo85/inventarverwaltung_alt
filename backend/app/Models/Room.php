@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Room extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'description',
+        'image',
+        'sort_order',
+        'active',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
+        'sort_order' => 'integer',
+    ];
+
+    protected $appends = ['display_id'];
+
+    /**
+     * Sichtbare Kennung: R{id}
+     */
+    public function getDisplayIdAttribute(): string
+    {
+        return 'R' . $this->id;
+    }
+
+    /**
+     * Items direkt in diesem Raum
+     */
+    public function items()
+    {
+        return $this->hasMany(Item::class)->whereNull('box_id')->where('is_in_inbox', false);
+    }
+
+    /**
+     * Alle Items in diesem Raum (inkl. in Boxen)
+     */
+    public function allItems()
+    {
+        return $this->hasMany(Item::class)->where('is_in_inbox', false);
+    }
+
+    /**
+     * Boxen in diesem Raum
+     */
+    public function boxes()
+    {
+        return $this->hasMany(Box::class)->where('is_in_inbox', false);
+    }
+
+    /**
+     * Suche nach Display-ID (R12 -> id=12)
+     */
+    public static function findByDisplayId(string $displayId): ?self
+    {
+        if (preg_match('/^R(\d+)$/i', $displayId, $matches)) {
+            return self::find($matches[1]);
+        }
+        return null;
+    }
+
+    /**
+     * Aktiv-Scopes
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order')->orderBy('name');
+    }
+}
