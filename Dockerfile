@@ -8,16 +8,23 @@ FROM composer:2 AS backend-builder
 
 WORKDIR /backend
 COPY backend/composer.json backend/composer.lock* ./
-RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction || \
+    composer install --no-dev --no-scripts --no-autoloader --no-interaction --ignore-platform-reqs
 COPY backend/ .
 RUN composer dump-autoload --no-dev --optimize --no-interaction
 
 # Stage 2: Build Frontend
-FROM node:20-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /frontend
+
+# Copy package files
 COPY frontend/package*.json ./
-RUN npm ci --only=production
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy source and build
 COPY frontend/ .
 RUN npm run build
 

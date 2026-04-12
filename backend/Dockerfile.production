@@ -12,7 +12,8 @@ WORKDIR /app
 COPY composer.json composer.lock* ./
 
 # Install dependencies (no dev)
-RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --ignore-platform-reqs || \
+    composer install --no-dev --no-scripts --no-autoloader --no-interaction
 
 # Copy application files
 COPY . .
@@ -30,6 +31,8 @@ RUN apk add --no-cache \
     nginx \
     supervisor \
     curl \
+    sqlite \
+    sqlite-dev \
     libzip-dev \
     libpng-dev \
     libjpeg-turbo-dev \
@@ -40,6 +43,7 @@ RUN apk add --no-cache \
     mariadb-client \
     && docker-php-ext-install \
     pdo_mysql \
+    pdo_sqlite \
     mysqli \
     zip \
     intl \
