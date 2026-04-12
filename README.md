@@ -1,88 +1,121 @@
-# Inventarverwaltung - Production Deployment
+# Inventarverwaltung
 
-## 📦 Schnelles Deployment auf Hostinger VPS
+Webbasierte Inventarverwaltung mit Vue.js Frontend, Laravel Backend und SQLite/MySQL Datenbank.
 
-### Ein-Befehl-Installation
+## 🚀 Schnellstart (Docker)
+
+### Ein-Befehl-Deployment
 
 ```bash
-# SSH auf deinen Server
-ssh user@your-server
-
-# Herunterladen und installieren
-git clone https://github.com/swissneo85/inventarverwaltung.git \
-&& cd inventarverwaltung \
-&& chmod +x deploy.sh \
-&& ./deploy.sh
+docker run -d \
+  --name inventarverwaltung \
+  -p 3004:80 \
+  -e APP_KEY="$(openssl rand -base64 32)" \
+  -v inventar_data:/app/data \
+  ghcr.io/swissneo85/inventarverwaltung:latest
 ```
 
-Das war's! Das Script macht alles automatisch:
-- ✅ Docker prüfen
-- ✅ Passwörter generieren
-- ✅ Frontend bauen
-- ✅ Backend Dependencies installieren
-- ✅ Container starten
-- ✅ Datenbank initialisieren
-- ✅ Admin-User erstellen
+### Mit docker-compose.yml
 
----
-
-## 🌐 Nach der Installation
-
-| URL | Beschreibung |
-|-----|-------------|
-| `http://deine-ip` | Inventarverwaltung |
-| Port 80 | HTTP (Standard) |
-| Port 443 | HTTPS (nach SSL Setup) |
-
-### Standard-Login
-
-| Benutzer | Passwort |
-|---------|---------|
-| admin | admin123 |
-
-⚠️ **Sofort ändern!**
-
----
-
-## 🔧 Manuelle Befehle
-
-```bash
-# Container stoppen
-docker-compose -f docker-compose.prod.yml down
-
-# Container starten
-docker-compose -f docker-compose.prod.yml up -d
-
-# Logs anzeigen
-docker-compose -f docker-compose.prod.yml logs -f
-
-# Neu bauen
-docker-compose -f docker-compose.prod.yml build --no-cache
-docker-compose -f docker-compose.prod.yml up -d
+```yaml
+services:
+  inventarverwaltung:
+    image: ghcr.io/swissneo85/inventarverwaltung:latest
+    container_name: inventarverwaltung
+    restart: unless-stopped
+    ports:
+      - "3004:80"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - APP_KEY=base64:DEIN_GEHEIMER_KEY_HIER
+      - APP_URL=http://localhost:3004
 ```
 
+```bash
+# Starten
+docker-compose up -d
+
+# Logs
+docker-compose logs -f
+```
+
+### Zugriff
+
+- **URL:** http://localhost:3004
+- **Benutzer:** admin
+- **Passwort:** admin123
+
+⚠️ **Passwort sofort ändern!**
+
 ---
 
-## 🔒 SSL einrichten (optional)
+## 📦 Image auf GitHub Container Registry
 
-```bash
-# Certbot installieren
-apt install -y certbot
+Das fertige Image wird automatisch bei jedem Push auf `main` gebaut:
 
-# Zertifikat holen (Port 80 muss frei sein)
-certbot certonly --standalone -d deine-domain.com
+```
+ghcr.io/swissneo85/inventarverwaltung:latest
+ghcr.io/swissneo85/inventarverwaltung:v1.0.0
+ghcr.io/swissneo85/inventarverwaltung:sha-abc123
 ```
 
 ---
 
-## 📁 Dateien
+## 🔧 Konfiguration
 
-| Datei | Beschreibung |
-|------|-------------|
-| `docker-compose.prod.yml` | Production Docker Config |
-| `deploy.sh` | Auto-Install Script |
-| `DEPLOY.md` | Detaillierte Anleitung |
-| `.env.production` | Vorlage für Umgebungsvariablen |
+### Umgebungsvariablen
+
+| Variable | Beschreibung | Standard |
+|----------|-------------|----------|
+| `APP_KEY` | App-Secret (Base64) | *erforderlich* |
+| `APP_URL` | Basis-URL | `http://localhost:3004` |
+| `APP_DEBUG` | Debug-Modus | `false` |
+| `PORT` | Externer Port | `3004` |
+
+### APP_KEY generieren
+
+```bash
+openssl rand -base64 32
+# Oder im Container:
+docker exec inventarverwaltung php artisan key:generate --show
+```
+
+---
+
+## 🌐 Mit MySQL/MariaDB (Optional)
+
+Für größere Installationen:
+
+```yaml
+services:
+  db:
+    image: mariadb:11.2
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: inventar
+      MYSQL_USER: inventar
+      MYSQL_PASSWORD: inventar_secret
+    volumes:
+      - db_data:/var/lib/mysql
+
+  inventarverwaltung:
+    image: ghcr.io/swissneo85/inventarverwaltung:latest
+    ports:
+      - "3004:80"
+    environment:
+      - APP_KEY=your-key
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_DATABASE=inventar
+      - DB_USERNAME=inventar
+      - DB_PASSWORD=inventar_secret
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+```
 
 ---
 
@@ -92,32 +125,39 @@ certbot certonly --standalone -d deine-domain.com
 
 ```bash
 # Logs prüfen
-docker-compose -f docker-compose.prod.yml logs
+docker logs inventarverwaltung
+
+# Neu starten
+docker restart inventarverwaltung
 
 # Neu bauen
-docker-compose -f docker-compose.prod.yml build --no-cache
-docker-compose -f docker-compose.prod.yml up -d
+docker pull ghcr.io/swissneo85/inventarverwaltung:latest
+docker-compose up -d
 ```
 
-### Datenbank-Verbindungsfehler
+### APP_KEY Fehler
 
 ```bash
-# DB neu starten
-docker-compose -f docker-compose.prod.yml restart db
-docker-compose -f docker-compose.prod.yml restart backend
+# Neuen Key generieren
+docker exec inventarverwaltung php artisan key:generate --force
 ```
 
-### White Screen
+### Datenbank resettieren
 
 ```bash
-# Rechte setzen
-chmod -R 775 backend/storage
-chmod -R 775 backend/bootstrap/cache
-
-# Cache leeren
-docker exec inventar-backend php artisan cache:clear
+# Achtung: Alle Daten gehen verloren!
+docker exec inventarverwaltung php artisan migrate:fresh --force
+docker exec inventarverwaltung php artisan db:seed --force
 ```
 
 ---
 
-**Repository:** https://github.com/swissneo85/inventarverwaltung
+## 📁 Repository
+
+**GitHub:** https://github.com/swissneo85/inventarverwaltung
+
+---
+
+## 📄 Lizenz
+
+MIT

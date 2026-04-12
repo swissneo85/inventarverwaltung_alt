@@ -1,0 +1,32 @@
+# ============================================
+# Ein-Befehl-Deployment für Hostinger VPS
+# ============================================
+
+services:
+  inventarverwaltung:
+    image: ghcr.io/swissneo85/inventarverwaltung:latest
+    container_name: inventarverwaltung
+    restart: unless-stopped
+    ports:
+      - "3004:80"
+    volumes:
+      # Persistente Daten
+      - ./data:/app/data
+      - ./storage:/var/www/html/storage
+    environment:
+      # App Configuration
+      - APP_NAME=Inventarverwaltung
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=http://localhost:3004
+      
+      # Database
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/app/data/database.sqlite
+      
+      # Sessions
+      - SESSION_DRIVER=file
+      
+      # WICHTIG: Ändere dies zu deinem eigenen Secret!
+      # Generiere mit: openssl rand -base64 32
