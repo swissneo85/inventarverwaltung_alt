@@ -36,7 +36,7 @@ services:
     environment:
       APP_NAME: Inventarverwaltung
       APP_ENV: production
-      APP_KEY: ${APP_KEY:-base64:YourAppKeyNeeds32CharactersHere=}
+      APP_KEY: ${APP_KEY:-}
       APP_DEBUG: "false"
       APP_URL: ${APP_URL:-http://localhost:8080}
       
@@ -49,13 +49,14 @@ services:
       
       SESSION_DRIVER: database
       SESSION_LIFETIME: 120
-      SESSION_SECURE_COOKIE: "true"
       
       SANCTUM_STATEFUL_DOMAINS: ${FRONTEND_URL:-http://localhost:3000}
       
       QUEUE_CONNECTION: database
-      LOG_CHANNEL: stack
+      LOG_CHANNEL: stderr
       LOG_LEVEL: info
+      
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-inventar_root_secret}
     volumes:
       - backend_storage:/var/www/html/storage
     ports:
@@ -63,7 +64,7 @@ services:
     networks:
       - inventar-network
 
-  # Vue.js Frontend (Development)
+  # Vue.js Frontend (Development with hot reload)
   frontend-dev:
     build:
       context: ./frontend
@@ -84,10 +85,6 @@ services:
       - inventar-network
     profiles:
       - dev
-
-  # Vue.js Frontend (Production - served by backend nginx)
-  # Use this for production deployments
-  # The frontend build output is copied into backend public folder
 
 volumes:
   db_data:

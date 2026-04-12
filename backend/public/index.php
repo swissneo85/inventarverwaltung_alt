@@ -1,0 +1,10 @@
+<?php
+
+define('LARAVEL_START', microtime(true));
+
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
+
+// Bootstrap Laravel...
+(require_once __DIR__.'/../bootstrap/app.php')
+    ->handleRequest(Request::capture());
