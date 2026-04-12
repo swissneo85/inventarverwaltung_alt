@@ -4,21 +4,15 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,50 +20,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push
+      - name: Build and Push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          tags: ghcr.io/swissneo85/inventarverwaltung:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            NODE_VERSION=22
-
-  # Release notification
-  notify:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    
-    steps:
-      - name: Notify on success
-        run: |
-          echo "✅ Docker image built and pushed successfully!"
-          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          echo ""
-          echo "Deploy with:"
-          echo "  docker run -d -p 3004:80 -e APP_KEY=your-key ghcr.io/swissneo85/inventarverwaltung:latest"
