@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v5)
+# Inventarverwaltung - Production Dockerfile (FIXED v6)
 # ============================================
 
 # Frontend bauen
@@ -14,8 +14,8 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json ./
-# composer:2 hat PHP mit allen Extensions. --ignore-platform-reqs + --no-scripts weil artisan erst nach COPY da ist
-RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-interaction
+# composer update weil kein lock file existiert
+RUN composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
 
 # Final Image
