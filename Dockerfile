@@ -37,7 +37,7 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
     && chown -R www-data:www-data . \
     && chmod -R 775 storage bootstrap/cache
 
-# Setup DB in image
+# Setup DE in image
 RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite
 RUN php artisan migrate --force 2>&1 || true
 RUN php artisan db:seed --force 2>&1 || true
