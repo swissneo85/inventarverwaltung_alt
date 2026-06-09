@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v4)
+# Inventarverwaltung - Production Dockerfile (FIXED v5)
 # ============================================
 
 # Frontend bauen
@@ -11,20 +11,11 @@ COPY frontend/ ./
 RUN npm run build
 
 # Backend bauen  
-FROM php:8.2-cli AS backend
+FROM composer:2 AS backend
 WORKDIR /app
-
-# Installiere Composer + PHP Extensions für Laravel
-RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev libsqlite3-dev \
-    && docker-php-ext-install pdo pdo_mysql pdo_sqlite \
-    dom xml mbstring curl zip bcmath fileinfo opcache gd \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
 COPY backend/composer.json ./
-# composer update weil composer.lock fehlt/inkomplett war
-RUN composer update --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --no-interaction
+# composer:2 hat PHP mit allen Extensions. --ignore-platform-reqs + --no-scripts weil artisan erst nach COPY da ist
+RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
 
 # Final Image
@@ -37,10 +28,8 @@ WORKDIR /var/www/html
 COPY --from=backend /app .
 COPY --from=frontend /app/dist public
 
-# Laravel Package Discovery + Caching
+# Laravel Package Discovery
 RUN php artisan package:discover --ansi 2>/dev/null || true
-RUN php artisan config:cache 2>/dev/null || true
-RUN php artisan route:cache 2>/dev/null || true
 
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache /app/data /run/php \
     && chown -R www-data:www-data . \
