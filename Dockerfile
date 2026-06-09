@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v10)
+# Inventarverwaltung - Production Dockerfile
 # ===========================================
 
 # Frontend bauen
@@ -14,10 +14,7 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json ./
-# Composer Security Advisories blocking ausschalten
-RUN mkdir -p /root/.composer \
-    && echo '{"config":{"policy":{"advisories":{"block":false}}}}' > /root/.composer/config.json \
-    && composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction --no-audit
+RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
 
 # Final Image
@@ -30,7 +27,6 @@ WORKDIR /var/www/html
 COPY --from=backend /app .
 COPY --from=frontend /app/dist public
 
-# Laravel Package Discovery
 RUN php artisan package:discover --ansi 2>/dev/null || true
 
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache /app/data /run/php \
