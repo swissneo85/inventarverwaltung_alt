@@ -16,8 +16,7 @@ WORKDIR /app
 COPY backend/composer.json ./
 RUN composer update --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
-
-# Dump Autoloader ohne Scripts (package:discover freirt)
+# Autoloader ohne Scripts
 RUN composer dump-autoload --optimize --no-scripts
 
 # Final Image
@@ -43,8 +42,8 @@ RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data
 RUN php artisan migrate --force 2>&1 || true
 RUN php artisan db:seed --force 2>&1 || true
 
-COPY to docker/nginx.conf /etc/nginx/http.d/default.conf
-COPY to docker/supervisor.conf /etc/supervisord.conf
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/supervisor.conf /etc/supervisord.conf
 COPY to docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
