@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v2)
+# Inventarverwaltung - Production Dockerfile (FIXED v3)
 # ============================================
 
 # Frontend bauen
@@ -11,12 +11,20 @@ COPY frontend/ ./
 RUN npm run build
 
 # Backend bauen  
-FROM composer:2 AS backend
+FROM php:8.2-cli AS backend
 WORKDIR /app
-COPY backend/composer.json backend/composer.lock ./
-# --no-scripts: verhindert dass artisan package:discover läuft
-# bevor die App-Dateien kopiert sind
-RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts
+
+# Installiere Composer + PHP Extensions für Laravel
+RUN apt-get update && apt-get install -y \
+    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite \
+    dom xml mbstring curl zip bcmath fileinfo opcache gd \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY backend/composer.json ./
+# composer update weil composer.lock fehlt/inkomplett war
+RUN composer update --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
 
 # Final Image
