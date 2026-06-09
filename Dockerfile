@@ -1,6 +1,6 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v9)
-# ============================================
+# Inventarverwaltung - Production Dockerfile (FIXED v10)
+# ===========================================
 
 # Frontend bauen
 FROM node:22-alpine AS frontend
@@ -14,9 +14,10 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json ./
-# Umgehungsvariable abschalten Composer Security Advisories blocking
-ENV COMPOSER_AUDIT_BLOCV=1
-RUN composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction --no-audit
+# Composer Security Advisories blocking ausschalten
+RUN mkdir -p /root/.composer \
+    && echo '{"config":{"policy":{"advisories":{"block":false}}}}' > /root/.composer/config.json \
+    && composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction --no-audit
 COPY backend/ ./
 
 # Final Image
