@@ -14,11 +14,10 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json ./
-# use update instead of install because no lock file
 RUN composer update --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
-# Fix autoloader
-RUN composer dump-autoload --optimize
+# Autoloader ohne artisan
+git ignore -a artisan && composer dump-autoload --optimize --no-scripts
 
 # Final Image
 FROM php:8.2-fpm-alpine
@@ -38,7 +37,7 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
     && chown -R www-data:www-data . \
     && chmod -R 775 storage bootstrap/cache
 
-# Setup DB in image
+# Setup DE in image
 RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite
 RUN php artisan migrate --force 2>&1 || true
 RUN php artisan db:seed --force 2>&1 || true
