@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v7)
+# Inventarverwaltung - Production Dockerfile (FIXED v8)
 # ============================================
 
 # Frontend bauen
@@ -14,8 +14,9 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json ./
-# --no-audit: verhindert Composer Security Advisories (Laravel 11 blocking)
-RUN composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction --no-audit
+# Composer Audit block ausschalten (Laravel 11 Security Advisories)
+RUN composer config -g audit.block false \
+    && composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction --no-audit
 COPY backend/ ./
 
 # Final Image
