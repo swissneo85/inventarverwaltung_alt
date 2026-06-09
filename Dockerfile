@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED)
+# Inventarverwaltung - Production Dockerfile (FIXED v2)
 # ============================================
 
 # Frontend bauen
@@ -14,7 +14,9 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json backend/composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+# --no-scripts: verhindert dass artisan package:discover läuft
+# bevor die App-Dateien kopiert sind
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts
 COPY backend/ ./
 
 # Final Image
@@ -26,6 +28,11 @@ WORKDIR /var/www/html
 
 COPY --from=backend /app .
 COPY --from=frontend /app/dist public
+
+# Laravel Package Discovery + Caching
+RUN php artisan package:discover --ansi 2>/dev/null || true
+RUN php artisan config:cache 2>/dev/null || true
+RUN php artisan route:cache 2>/dev/null || true
 
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache /app/data /run/php \
     && chown -R www-data:www-data . \
