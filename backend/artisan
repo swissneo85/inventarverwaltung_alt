@@ -8,6 +8,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 define('LARAVEL_START', microtime(true));
 
+require __DIR__.'/vendor/autoload.php';
+
 $status = require_once __DIR__.'/bootstrap/app.php';
 
 $kernel = $status->make(Kernel::class);
@@ -17,7 +19,6 @@ $status = $kernel->handle(
     new ConsoleOutput,
 );
 
-// Exit status...
 if (! is_int($status)) {
     $status = match ($status) {
         true => 0,
@@ -27,4 +28,4 @@ if (! is_int($status)) {
 
 $kernel->terminate($input, $status);
 
-exit($s$tatus);
+exit($status);
