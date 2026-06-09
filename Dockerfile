@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v6)
+# Inventarverwaltung - Production Dockerfile (FIXED v7)
 # ============================================
 
 # Frontend bauen
@@ -14,8 +14,8 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json ./
-# composer update weil kein lock file existiert
-RUN composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction
+# --no-audit: verhindert Composer Security Advisories (Laravel 11 blocking)
+RUN composer update --no-dev --ignore-platform-reqs --no-scripts --no-interaction --no-audit
 COPY backend/ ./
 
 # Final Image
