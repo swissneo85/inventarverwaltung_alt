@@ -1,6 +1,6 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (DB in Image)
-# ============================================
+# Inventarverwaltung - Production Dockerfile
+# ===========================================
 
 # Frontend bauen
 FROM node:22-alpine AS frontend
@@ -14,8 +14,11 @@ RUN npm run build
 FROM composer:2 AS backend
 WORKDIR /app
 COPY backend/composer.json ./
-RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-interaction
+# use update instead of install because no lock file
+RUN composer update --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
+# Fix autoloader
+RUN composer dump-autoload --optimize
 
 # Final Image
 FROM php:8.2-fpm-alpine
@@ -27,29 +30,18 @@ WORKDIR /var/www/html
 COPY --from=backend /app .
 COPY --from=frontend /app/dist public
 
-# Laravel Package Discovery
+# Laravel optimize
 RUN php artisan package:discover --ansi 2>/dev/null || true
+RUN php artisan optimize 2>/dev/null || true
 
-# Verzeichnisse + Rechte
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache /app/data /run/php \
     && chown -R www-data:www-data . \
     && chmod -R 775 storage bootstrap/cache
 
-# Datenbank IM BMAGE erstellen (nicht erst beim Start)
-ENV APP_KEY=base64:4n4n4n4n4n4n4n4n4n4n4n4n4n4n4n4n4n4n4=
-ENV APP_ENV=production
-ENV APP_DEBUG=false
-ENV DB_CONNECTION=sqlite
-ENV DB_DATABASE=/app/data/database.sqlite
-ENV SESSION_DRIVER=file
-
-RUN mkdir -p /app/data \
-    && touch /app/data/database.sqlite \
-    && chmod 666 /app/data/database.sqlite \
-    && chown -R www-data:www-data /app/data \
-    && php artisan migrate --force \
-    && php artisan db:seed --force \
-    && php artisan config:clear || true
+# Setup DB in image
+RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite
+RUN php artisan migrate --force 2>&1 || true
+RUN php artisan db:seed --force 2>&1 || true
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisor.conf /etc/supervisord.conf
