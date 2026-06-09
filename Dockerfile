@@ -36,9 +36,9 @@ RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data
 
 
 # Copy configs
-COPY to docker/nginx.conf /etc/nginx/http.d/default.conf
-COPY to docker/supervisor.conf /etc/supervisord.conf
-COPY to docker/start.sh /start.sh
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/supervisor.conf /etc/supervisord.conf
+COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
 EXPOSE 80

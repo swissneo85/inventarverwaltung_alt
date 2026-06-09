@@ -1,15 +1,18 @@
 #!/usr/bin/env sh
 
-# Check of DB exists (in case volume overwrote image)
+# Create DB if not exists
 if [ ! -f "/app/data/database.sqlite" ]; then
-    echo "📝 SQL DB not found in volume. Creating ..."
+    echo "📝 Creating SQLite DB ..."
     mkdir -p /app/data
     touch /app/data/database.sqlite
-    php artisan migrate --force 2>&1
-    php artisan db:seed --force 2>&1
-else
-    echo "�n SQL DB already exists."
+    php artisan migrate --force
+    php artisan db:seed --force
 fi
 
-echo "𜫁 Starting Nginx + PHP-FPM ..."
+# Laravel optimize
+php artisan package:discover --ansi 2>/dev/null || true
+php artisan optimize 2>/dev/null || true
+php artisan config:clear 2>/dev/null || true
+
+echo "🌐 Starting Nginx + PHP-FPM ..."
 exec /usr/bin/supervisord -c /etc/supervisord.conf
