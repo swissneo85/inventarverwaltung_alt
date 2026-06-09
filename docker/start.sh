@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+# Fix permissions on storage
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
+
 # Create DB if not exists
 if [ ! -f "/app/data/database.sqlite" ]; then
     echo "📝 Creating SQLite DB ..."
