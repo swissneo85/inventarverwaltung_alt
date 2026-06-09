@@ -1,22 +1,29 @@
 #!/usr/bin/env sh
 
-# Fix permissions on storage
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
+# Ensure www-data user exists (Alpine fix)
+if ! id -u www-data > /dev/null 2>&1; then
+    adduser -D -u 33 -g www-data www-data 2>/dev/null || true
+fi
 
-# TEMP: Debug mode ON to see real errors
-export APP_DEBUG=true
+# Fix permissions on storage (777 to be sure)
+mkdir -p /var/www/html/storage/logs /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+
+# Also fix for root user fallback
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Create DB if not exists
 if [ ! -f "/app/data/database.sqlite" ]; then
     echo "📝 Creating SQLite DB ..."
     mkdir -p /app/data
     touch /app/data/database.sqlite
-    php artisan migrate --force > /var/www/html/storage/logs/migrate.log 2>&1 || echo "MIGRATE FAILED! Check storage/logs/migrate.log"
-    php artisan db:seed --force > /var/www/html/storage/logs/seed.log 2>&1 || echo "SEED FAILED! Check storage/logs/seed.log"
+    chmod 666 /app/data/database.sqlite
+    php artisan migrate --force 2>&1 || echo "MIGRATE FAILED"
+    php artisan db:seed --force 2>&1 || echo "SEED FAILED"
 fi
 
-# Laravel optimize (with debug so we see errors)
+# Laravel optimize
 php artisan package:discover --ansi 2>/dev/null || true
 php artisan optimize 2>/dev/null || true
 php artisan config:clear 2>/dev/null || true
