@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile
+# Inventarverwaltung - Production Dockerfile (FIXED)
 # ============================================
 
 # Frontend bauen
@@ -13,13 +13,13 @@ RUN npm run build
 # Backend bauen  
 FROM composer:2 AS backend
 WORKDIR /app
-COPY backend/composer.json ./
-RUN composer install --no-dev --ignore-platform-reqs || true
+COPY backend/composer.json backend/composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 COPY backend/ ./
 
 # Final Image
 FROM php:8.2-fpm-alpine
-RUN apk add --no-cache nginx sqlite sqlite-dev curl
+RUN apk add --no-cache nginx sqlite sqlite-dev curl supervisor
 RUN docker-php-ext-install pdo_sqlite pdo_mysql
 
 WORKDIR /var/www/html
