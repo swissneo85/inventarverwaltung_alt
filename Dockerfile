@@ -2,7 +2,7 @@
 # Inventarverwaltung - Single-Stage Dockerfile
 # ============================================
 
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Install dependencies
 RUN apk add --no-cache nginx sqlite sqlite-dev curl supervisor nodejs npm git unzip \
