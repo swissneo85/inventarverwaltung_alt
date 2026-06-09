@@ -26,25 +26,19 @@ RUN cd /tmp/frontend && npm run build && cp -r dist/* /var/www/html/public/
 RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-interaction \
     && composer dump-autoload --optimize --no-scripts
 
-# Laravel optimize
-RUN php artisan package:discover --ansi \
-    && php artisan optimize \
-    && php artisan config:clear
-
 # Directories
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache /app/data /run/php \
     && chown -R www-data:www-data . \
     && chmod -R 775 storage bootstrap/cache
 
 # Create DB
-RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite \
-    && php artisan migrate --force \
-    && php artisan db:seed --force
+RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite
+
 
 # Copy configs
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
-COPY docker/supervisor.conf /etc/supervisord.conf
-COPY docker/start.sh /start.sh
+COPY to docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY to docker/supervisor.conf /etc/supervisord.conf
+COPY to docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
 EXPOSE 80
