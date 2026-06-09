@@ -30,5 +30,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/swissneo85/inventarverwaltung_alt:latest,ghcr.io/swissneo85/inventarverwaltung_alt:v4-debug
+          tags: ghcr.io/swissneo85/inventarverwaltung_alt:latest,ghcr.io/swissneo85/inventarverwaltung_alt:v5-final
           no-cache: true
