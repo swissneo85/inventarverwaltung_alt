@@ -23,12 +23,12 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_token }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build and Push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ghcr/${{ github.repository }}/latest,ghcr/${{ github.repository }}:v2
+          tags: ghcr/swissneo85/inventarverwaltung_alt:latest
           no-cache: true
