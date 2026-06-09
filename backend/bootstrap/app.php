@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'category' => CheckCategoryAccess::class,
         ]);
         
-        $middleware->api(sanctum: true);
+        $middleware->api();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
