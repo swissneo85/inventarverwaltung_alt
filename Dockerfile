@@ -16,7 +16,7 @@ WORKDIR /app
 COPY backend/composer.json ./
 RUN composer update --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --no-interaction
 COPY backend/ ./
-# Autoloader ohne Scripts
+# Autoloader ohne Scripts (package:discover freirt)
 RUN composer dump-autoload --optimize --no-scripts
 
 # Final Image
@@ -37,13 +37,13 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
     && chown -R www-data:www-data . \
     && chmod -R 775 storage bootstrap/cache
 
-# Setup DE in image
+# Setup DB in image
 RUN mkdir -p /app/data && touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite
 RUN php artisan migrate --force 2>&1 || true
 RUN php artisan db:seed --force 2>&1 || true
 
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
-COPY docker/supervisor.conf /etc/supervisord.conf
+COPY to docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY to docker/supervisor.conf /etc/supervisord.conf
 COPY to docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
