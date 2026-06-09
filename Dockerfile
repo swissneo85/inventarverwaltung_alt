@@ -1,5 +1,5 @@
 # ============================================
-# Inventarverwaltung - Production Dockerfile (FIXED v3)
+# Inventarverwaltung - Production Dockerfile (FIXED v4)
 # ============================================
 
 # Frontend bauen
@@ -16,7 +16,7 @@ WORKDIR /app
 
 # Installiere Composer + PHP Extensions für Laravel
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev libsqlite3-dev \
     && docker-php-ext-install pdo pdo_mysql pdo_sqlite \
     dom xml mbstring curl zip bcmath fileinfo opcache gd \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
