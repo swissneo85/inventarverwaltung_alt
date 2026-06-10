@@ -28,7 +28,9 @@ RUN apk add --no-cache \
     pcntl \
     bcmath \
     gd \
-    xml
+    xml \
+    && echo "upload_max_filesize = 15M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/uploads.ini
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

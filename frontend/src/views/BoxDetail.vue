@@ -10,6 +10,7 @@
         <h2>Details</h2>
         <div class="detail-row"><span>Raum:</span><span>{{ box.room?.name || 'Inbox' }}</span></div>
         <div class="detail-row"><span>Beschreibung:</span><span>{{ box.description || '-' }}</span></div>
+        <ImageGallery type="boxes" :model-id="route.params.id" />
       </div>
       <div class="card section">
         <h2>Items ({{ box.items_count || 0 }})</h2>
@@ -31,6 +32,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
+import ImageGallery from '@/components/ImageGallery.vue'
 
 const route = useRoute()
 const router = useRouter()

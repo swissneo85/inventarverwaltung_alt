@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\LoginLogController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +69,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/items/{id}/assign-box', [ItemController::class, 'assignToBox']);
     Route::post('/items/{id}/move-to-inbox', [ItemController::class, 'moveToInbox']);
     Route::post('/items/{id}/qr-code', [ItemController::class, 'generateQrCode']);
+    Route::get('/items/{id}/images', fn(Request $r, $id) => app(ImageController::class)->index('items', $id));
+    Route::post('/items/{id}/images', fn(Request $r, $id) => app(ImageController::class)->store($r, 'items', $id));
+    Route::post('/items/{id}/images/reorder', fn(Request $r, $id) => app(ImageController::class)->reorder($r, 'items', $id));
+
+    // Boxen Images
+    Route::get('/boxes/{id}/images', fn(Request $r, $id) => app(ImageController::class)->index('boxes', $id));
+    Route::post('/boxes/{id}/images', fn(Request $r, $id) => app(ImageController::class)->store($r, 'boxes', $id));
+    Route::post('/boxes/{id}/images/reorder', fn(Request $r, $id) => app(ImageController::class)->reorder($r, 'boxes', $id));
+
+    // Bilder löschen
+    Route::delete('/images/{imageId}', [ImageController::class, 'destroy']);
     
     // Kategorien
     Route::apiResource('categories', CategoryController::class);

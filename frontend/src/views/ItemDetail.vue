@@ -18,6 +18,9 @@
         <h2>Standort</h2>
         <div class="detail-row"><span>Typ:</span><span>{{ locationText }}</span></div>
       </div>
+      <div class="card detail-card">
+        <ImageGallery type="items" :model-id="id" />
+      </div>
       <div class="actions">
         <router-link :to="`/items/${id}/edit`" class="btn btn-primary">Bearbeiten</router-link>
         <button class="btn btn-secondary" @click="$router.back()">Zurück</button>
@@ -31,6 +34,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
+import ImageGallery from '@/components/ImageGallery.vue'
 
 const route = useRoute()
 const router = useRouter()
