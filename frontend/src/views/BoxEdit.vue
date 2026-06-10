@@ -98,4 +98,12 @@ async function save() {
 .page-header h1 { font-size: 1.5rem; }
 .form-card { padding: 1.5rem; }
 .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+@media (max-width: 767px) {
+  .form-card { padding: 1rem; }
+  .form-actions {
+    flex-direction: column-reverse;
+    .btn { width: 100%; justify-content: center; }
+  }
+}
 </style>

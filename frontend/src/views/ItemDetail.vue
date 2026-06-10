@@ -71,8 +71,17 @@ onMounted(async () => {
 .page-header h1 { font-size: 1.5rem; }
 .detail-card { padding: 1.5rem; margin-bottom: 1rem; }
 .detail-card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
-.detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
-.detail-row span:first-child { color: #6b7280; }
+.detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; gap: 0.5rem; }
+.detail-row span:first-child { color: #6b7280; flex-shrink: 0; }
+.detail-row span:last-child { text-align: right; }
 .actions { display: flex; gap: 1rem; }
 .loading { padding: 2rem; text-align: center; color: #6b7280; }
+
+@media (max-width: 767px) {
+  .detail-card { padding: 1rem; }
+  .actions {
+    flex-direction: column;
+    .btn { width: 100%; justify-content: center; }
+  }
+}
 </style>

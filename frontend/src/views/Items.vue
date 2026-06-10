@@ -139,6 +139,7 @@
 
     <!-- Table View -->
     <div v-else class="table-card">
+      <!-- Desktop table -->
       <div class="table-container">
         <table class="table">
           <thead>
@@ -188,6 +189,32 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <!-- Mobile card-stack (replaces table on small screens) -->
+      <div class="mobile-stack">
+        <router-link
+          v-for="item in items"
+          :key="'ms-' + item.id"
+          :to="`/items/${item.id}`"
+          class="mobile-row"
+        >
+          <div class="mobile-row-thumb">
+            <img v-if="item.cover_image" :src="item.cover_image.url" :alt="item.name" class="row-thumb-img">
+            <span v-else class="row-thumb-id">{{ item.display_id || 'I' + item.id }}</span>
+          </div>
+          <div class="mobile-row-body">
+            <div class="mobile-row-name">{{ item.name }}</div>
+            <div class="mobile-row-meta">
+              <span class="row-id">{{ item.display_id || 'I' + item.id }}</span>
+              <span v-if="item.category" class="chip">{{ item.category.name }}</span>
+              <span v-if="item.condition" :class="['condition-badge', conditionClass(item.condition)]">{{ item.condition }}</span>
+            </div>
+            <div v-if="getLocationText(item)" class="mobile-row-loc">{{ getLocationText(item) }}</div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mobile-row-chevron">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </router-link>
       </div>
     </div>
     
@@ -728,19 +755,102 @@ function conditionClass(condition) {
   color: #6b7280;
 }
 
-@media (max-width: 768px) {
+/* Mobile card-stack – hidden on desktop */
+.mobile-stack { display: none; }
+
+@media (max-width: 767px) {
   .page-header {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
   }
-  
+
   .filters-row {
     flex-direction: column;
   }
-  
+
   .filter-select {
     width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .search-field input {
+    font-size: 16px;
+    min-height: 36px;
+  }
+
+  .toggle-btn {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8rem;
+    gap: 0.35rem;
+  }
+
+  /* table → hidden on mobile, card-stack shown */
+  .table-container { display: none; }
+  .mobile-stack { display: flex; flex-direction: column; }
+
+  .mobile-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    text-decoration: none;
+    color: inherit;
+    min-height: 64px;
+
+    &:last-child { border-bottom: none; }
+    &:active { background: #f9fafb; }
+  }
+
+  .mobile-row-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .mobile-row-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mobile-row-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.2rem;
+  }
+
+  .mobile-row-loc {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.15rem;
+  }
+
+  .mobile-row-chevron {
+    color: #d1d5db;
+    flex-shrink: 0;
+  }
+
+  /* Gallery shrinks gracefully */
+  .items-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
 </style>

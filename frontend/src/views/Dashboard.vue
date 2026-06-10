@@ -378,9 +378,30 @@ onMounted(async () => {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
-    
+
     .btn-secondary {
       text-align: center;
+    }
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .action-card {
+    padding: 1rem;
+  }
+
+  .warranty-alert {
+    flex-wrap: wrap;
+
+    .alert-link {
+      margin-left: 0;
+      width: 100%;
     }
   }
 }

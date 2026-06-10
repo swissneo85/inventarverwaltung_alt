@@ -62,14 +62,20 @@ onMounted(async () => {
 
 <style scoped>
 .page { max-width: 1000px; margin: 0 auto; }
-.page-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.page-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .page-header h1 { font-size: 1.5rem; }
 .section { padding: 1.5rem; margin-bottom: 1rem; }
 .section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
-.detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
-.detail-row span:first-child { color: #6b7280; }
+.detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; gap: 0.5rem; }
+.detail-row span:first-child { color: #6b7280; flex-shrink: 0; }
+.detail-row span:last-child { text-align: right; }
 .list-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
-.list-item span:first-child { font-weight: 600; color: #3b82f6; }
+.list-item span:first-child { font-weight: 600; color: #3b82f6; flex-shrink: 0; }
+.list-item span:nth-child(2) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .empty { color: #6b7280; text-align: center; padding: 1rem; }
 .loading { padding: 2rem; text-align: center; color: #6b7280; }
+
+@media (max-width: 767px) {
+  .section { padding: 1rem; }
+}
 </style>
