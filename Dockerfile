@@ -42,13 +42,13 @@ RUN cd /tmp/frontend && npm install && mkdir -p /var/www/html/public
 COPY frontend/ /tmp/frontend/
 RUN cd /tmp/frontend && npm run build && cp -r dist/* /var/www/html/public/
 
-# Install PHP dependencies (OHNE --no-scripts — wichtig für Laravel!)
-RUN composer install --no-dev --ignore-platform-reqs --no-interaction \
-    && composer dump-autoload --optimize
-
-# Permissions
+# Permissions VOR composer install (bootstrap/cache muss existieren)
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache /app/data /run/php \
     && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /app/data
+
+# Install PHP dependencies (Laravel braucht post-autoload-dump!)
+RUN composer install --no-dev --ignore-platform-reqs --no-interaction \
+    && composer dump-autoload --optimize
 
 # Create DB
 RUN touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite
