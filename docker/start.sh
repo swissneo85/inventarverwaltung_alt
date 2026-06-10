@@ -15,35 +15,77 @@ mkdir -p /var/www/html/storage/logs /var/www/html/storage/framework/cache \
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /app/data
 
-# Ensure APP_KEY is set (critical for Laravel)
-if [ -z "$APP_KEY" ]; then
+# ============================================
+# .env Datei konfigurieren (KRITISCH!)
+# ============================================
+ENV_FILE="/var/www/html/.env"
+
+# Falls .env fehlt, erstelle eine
+if [ ! -f "$ENV_FILE" ]; then
+    echo "📝 Erstelle .env Datei..."
+    cat > "$ENV_FILE" <<EOF
+APP_NAME=Inventarverwaltung
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=http://localhost:3004
+DB_CONNECTION=sqlite
+DB_DATABASE=/app/data/database.sqlite
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+LOG_CHANNEL=errorlog
+LOG_LEVEL=warning
+EOF
+fi
+
+# APP_KEY in .env schreiben (wichtig für Sanctum!)
+if [ -n "$APP_KEY" ]; then
+    # Entferne alten APP_KEY und setze neuen
+    sed -i '/^APP_KEY=/d' "$ENV_FILE"
+    echo "APP_KEY=${APP_KEY}" >> "$ENV_FILE"
+    echo "   APP_KEY aus Umgebungsvariable gesetzt"
+elif ! grep -q '^APP_KEY=.' "$ENV_FILE"; then
+    # Generiere APP_KEY falls leer
     echo "⚠️  APP_KEY nicht gesetzt! Generiere automatisch..."
-    export APP_KEY="base64:$(openssl rand -base64 32)"
-    echo "   APP_KEY=$APP_KEY"
+    NEW_KEY="base64:$(openssl rand -base64 32)"
+    sed -i '/^APP_KEY=/d' "$ENV_FILE"
+    echo "APP_KEY=${NEW_KEY}" >> "$ENV_FILE"
+    echo "   APP_KEY=${NEW_KEY}"
 fi
 
-echo "   APP_KEY ist konfiguriert"
+# Umgebungsvariablen in .env schreiben (für Docker-Compose Kompatibilität)
+if [ -n "$APP_URL" ]; then
+    sed -i '/^APP_URL=/d' "$ENV_FILE"
+    echo "APP_URL=${APP_URL}" >> "$ENV_FILE"
+fi
 
-# Environment checks
-if [ -z "$DB_CONNECTION" ]; then
-    export DB_CONNECTION=sqlite
-fi
-if [ -z "$DB_DATABASE" ]; then
-    export DB_DATABASE=/app/data/database.sqlite
-fi
-if [ -z "$SESSION_DRIVER" ]; then
-    export SESSION_DRIVER=file
-fi
+# DB Konfiguration in .env sicherstellen
+sed -i '/^DB_CONNECTION=/d' "$ENV_FILE"
+echo "DB_CONNECTION=sqlite" >> "$ENV_FILE"
+sed -i '/^DB_DATABASE=/d' "$ENV_FILE"
+echo "DB_DATABASE=/app/data/database.sqlite" >> "$ENV_FILE"
+
+# Session Driver
+sed -i '/^SESSION_DRIVER=/d' "$ENV_FILE"
+echo "SESSION_DRIVER=file" >> "$ENV_FILE"
+
+echo "   ✅ .env konfiguriert"
+
+# Laravel Config Cache leeren (damit .env neu gelesen wird)
+cd /var/www/html
+php artisan config:clear 2>/dev/null || true
 
 # Create SQLite DB if missing
-if [ ! -f "$DB_DATABASE" ]; then
+DB_FILE="/app/data/database.sqlite"
+if [ ! -f "$DB_FILE" ]; then
     echo "📝 Erstelle SQLite Datenbank..."
-    mkdir -p "$(dirname "$DB_DATABASE")"
-    touch "$DB_DATABASE"
-    chmod 666 "$DB_DATABASE"
+    mkdir -p "$(dirname "$DB_FILE")"
+    touch "$DB_FILE"
+    chmod 666 "$DB_FILE"
     
     echo "   Führe Migrationen aus..."
-    cd /var/www/html
     php artisan migrate --force --no-ansi 2>&1 || { echo "   ❌ Migration fehlgeschlagen"; }
     
     echo "   Führe Seeder aus..."
@@ -54,10 +96,9 @@ else
     echo "   📁 Datenbank existiert bereits"
     
     # Verify DB has tables; if somehow empty, re-seed
-    TABLE_COUNT=$(sqlite3 "$DB_DATABASE" "SELECT count(name) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';" 2>/dev/null || echo "0")
+    TABLE_COUNT=$(sqlite3 "$DB_FILE" "SELECT count(name) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';" 2>/dev/null || echo "0")
     if [ "$TABLE_COUNT" -lt "5" ]; then
         echo "   ⚠️  Datenbank scheint leer. Führe Migrationen + Seeder erneut aus..."
-        cd /var/www/html
         php artisan migrate --force --no-ansi 2>&1 || true
         php artisan db:seed --force --no-ansi 2>&1 || true
     fi

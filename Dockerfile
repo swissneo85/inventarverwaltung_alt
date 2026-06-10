@@ -18,6 +18,9 @@ WORKDIR /var/www/html
 # Copy backend
 COPY backend/ .
 
+# Copy production .env as default
+COPY backend/.env.production .env
+
 # Build frontend
 COPY frontend/package.json /tmp/frontend/package.json
 RUN cd /tmp/frontend && npm install && mkdir -p /var/www/html/public
