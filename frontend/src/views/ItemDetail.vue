@@ -22,10 +22,17 @@
         <ImageGallery type="items" :model-id="id" />
       </div>
       <div class="actions">
-        <router-link :to="`/items/${id}/edit`" class="btn btn-primary">Bearbeiten</router-link>
+        <button class="btn btn-primary" @click="editModalOpen = true">Bearbeiten</button>
         <button class="btn btn-secondary" @click="$router.back()">Zurück</button>
       </div>
     </div>
+
+    <ItemModal
+      v-if="editModalOpen"
+      :item-id="id"
+      @close="editModalOpen = false"
+      @saved="onSaved"
+    />
   </div>
 </template>
 
@@ -35,6 +42,7 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import ImageGallery from '@/components/ImageGallery.vue'
+import ItemModal from '@/components/ItemModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -43,6 +51,7 @@ const toast = useToast()
 const id = route.params.id
 const item = ref(null)
 const loading = ref(true)
+const editModalOpen = ref(false)
 
 const locationText = computed(() => {
   if (!item.value) return '-'
@@ -52,7 +61,7 @@ const locationText = computed(() => {
   return '-'
 })
 
-onMounted(async () => {
+async function loadItem() {
   try {
     const res = await api.get(`/items/${id}`)
     item.value = res.data.data
@@ -62,7 +71,14 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+async function onSaved() {
+  loading.value = true
+  await loadItem()
+}
+
+onMounted(loadItem)
 </script>
 
 <style scoped>

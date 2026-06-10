@@ -140,22 +140,41 @@
           v-for="item in recentItems"
           :key="item.id"
           :item="item"
+          @edit="openEdit"
         />
       </div>
     </div>
   </div>
+
+  <ItemModal
+    v-if="editModal.open"
+    :item-id="editModal.itemId"
+    @close="editModal.open = false"
+    @saved="onSaved"
+  />
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import api from '@/services/api'
 import ItemCard from '@/components/ItemCard.vue'
+import ItemModal from '@/components/ItemModal.vue'
 
 const stats = ref({})
 const recentItems = ref([])
 const loading = ref(true)
 const inboxCount = ref(0)
 const warrantyExpiring = ref(0)
+const editModal = ref({ open: false, itemId: null })
+
+function openEdit(itemId) {
+  editModal.value = { open: true, itemId }
+}
+
+async function onSaved() {
+  const recentRes = await api.get('/dashboard/recent?limit=5')
+  recentItems.value = recentRes.data.data
+}
 
 onMounted(async () => {
   try {
@@ -164,11 +183,11 @@ onMounted(async () => {
       api.get('/dashboard/recent?limit=5'),
       api.get('/dashboard/inbox'),
     ])
-    
+
     stats.value = statsRes.data.data
     recentItems.value = recentRes.data.data
     inboxCount.value = inboxRes.data.data.items_count + inboxRes.data.data.boxes_count
-    
+
     if (stats.value.alerts?.warranty_expiring) {
       warrantyExpiring.value = stats.value.alerts.warranty_expiring
     }
