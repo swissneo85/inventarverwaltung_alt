@@ -1,8 +1,9 @@
 <template>
   <div class="item-card">
     <div class="item-main">
-      <div class="item-icon">
-        {{ item.display_id || 'I' + item.id }}
+      <div class="item-thumb">
+        <img v-if="item.cover_image" :src="item.cover_image.url" :alt="item.name" class="thumb-img">
+        <span v-else class="thumb-id">{{ item.display_id || 'I' + item.id }}</span>
       </div>
       <div class="item-info">
         <h3 class="item-name">{{ item.name }}</h3>
@@ -82,17 +83,29 @@ const locationText = computed(() => {
   gap: 1rem;
 }
 
-.item-icon {
-  width: 40px;
-  height: 40px;
+.item-thumb {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #dbeafe;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #dbeafe;
-  color: #3b82f6;
-  border-radius: 8px;
-  font-size: 0.75rem;
+}
+
+.thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-id {
+  font-size: 0.7rem;
   font-weight: 600;
+  color: #3b82f6;
 }
 
 .item-info {

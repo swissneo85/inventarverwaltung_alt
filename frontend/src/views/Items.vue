@@ -64,29 +64,24 @@
     
     <!-- View Toggle -->
     <div class="view-toggle">
-      <button
-        :class="['toggle-btn', { active: viewMode === 'list' }]"
-        @click="viewMode = 'list'"
-      >
+      <button :class="['toggle-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'" title="Listenansicht">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="8" y1="6" x2="21" y2="6"></line>
-          <line x1="8" y1="12" x2="21" y2="12"></line>
-          <line x1="8" y1="18" x2="21" y2="18"></line>
-          <line x1="3" y1="6" x2="3.01" y2="6"></line>
-          <line x1="3" y1="12" x2="3.01" y2="12"></line>
-          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>
         </svg>
         Liste
       </button>
-      <button
-        :class="['toggle-btn', { active: viewMode === 'table' }]"
-        @click="viewMode = 'table'"
-      >
+      <button :class="['toggle-btn', { active: viewMode === 'gallery' }]" @click="viewMode = 'gallery'" title="Galerieansicht">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>
+        </svg>
+        Galerie
+      </button>
+      <button :class="['toggle-btn', { active: viewMode === 'table' }]" @click="viewMode = 'table'" title="Tabellenansicht">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="3" y1="9" x2="21" y2="9"></line>
-          <line x1="3" y1="15" x2="21" y2="15"></line>
-          <line x1="9" y1="3" x2="9" y2="21"></line>
+          <line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line>
         </svg>
         Tabelle
       </button>
@@ -111,13 +106,37 @@
     
     <!-- List View -->
     <div v-else-if="viewMode === 'list'" class="items-list">
-      <ItemCard
+      <ItemCard v-for="item in items" :key="item.id" :item="item" />
+    </div>
+
+    <!-- Gallery View -->
+    <div v-else-if="viewMode === 'gallery'" class="items-gallery">
+      <router-link
         v-for="item in items"
         :key="item.id"
-        :item="item"
-      />
+        :to="`/items/${item.id}`"
+        class="gallery-card"
+      >
+        <div class="gallery-img-wrap">
+          <img v-if="item.cover_image" :src="item.cover_image.url" :alt="item.name" class="gallery-img">
+          <div v-else class="gallery-placeholder">
+            <span>{{ item.display_id || 'I' + item.id }}</span>
+          </div>
+        </div>
+        <div class="gallery-info">
+          <div class="gallery-id">{{ item.display_id || 'I' + item.id }}</div>
+          <div class="gallery-name">{{ item.name }}</div>
+          <div v-if="item.category" class="gallery-cat">{{ item.category.name }}</div>
+          <div class="gallery-loc">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {{ getLocationText(item) }}
+          </div>
+        </div>
+      </router-link>
     </div>
-    
+
     <!-- Table View -->
     <div v-else class="card">
       <div class="table-container">
@@ -404,6 +423,99 @@ function getLocationText(item) {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.items-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.gallery-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.gallery-img-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dbeafe;
+
+  span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #3b82f6;
+  }
+}
+
+.gallery-info {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.gallery-id {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.gallery-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-cat {
+  font-size: 0.75rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-loc {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: auto;
+  padding-top: 0.25rem;
 }
 
 .loading-state, .empty-state {

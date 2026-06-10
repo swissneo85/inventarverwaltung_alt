@@ -15,7 +15,7 @@ class ItemController extends BaseApiController
      */
     public function index(Request $request)
     {
-        $query = Item::with(['category', 'room', 'box']);
+        $query = Item::with(['category', 'room', 'box', 'coverImage']);
         
         // Filter
         if ($request->has('room_id')) {
