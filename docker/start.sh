@@ -94,12 +94,15 @@ if [ ! -f "$DB_FILE" ]; then
     echo "   ✅ Datenbank initialisiert"
 else
     echo "   📁 Datenbank existiert bereits"
-    
+
+    # Immer neue Migrationen ausführen (bereits ausgeführte werden übersprungen)
+    echo "   Führe ausstehende Migrationen aus..."
+    php artisan migrate --force --no-ansi 2>&1 || true
+
     # Verify DB has tables; if somehow empty, re-seed
     TABLE_COUNT=$(sqlite3 "$DB_FILE" "SELECT count(name) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';" 2>/dev/null || echo "0")
     if [ "$TABLE_COUNT" -lt "5" ]; then
-        echo "   ⚠️  Datenbank scheint leer. Führe Migrationen + Seeder erneut aus..."
-        php artisan migrate --force --no-ansi 2>&1 || true
+        echo "   ⚠️  Datenbank scheint leer. Führe Seeder erneut aus..."
         php artisan db:seed --force --no-ansi 2>&1 || true
     fi
 fi
