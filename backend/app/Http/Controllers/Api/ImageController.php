@@ -29,7 +29,7 @@ class ImageController extends BaseApiController
         }
 
         $r->validate([
-            'image' => 'required|file|mimes:jpeg,jpg,png,gif,webp|max:10240',
+            'image' => 'required|file|mimes:jpeg,jpg,png,gif,webp,heic,heif|max:15360',
         ]);
 
         $file = $r->file('image');

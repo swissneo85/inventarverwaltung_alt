@@ -107,8 +107,47 @@ const lightboxIndex = ref(null)
 const deleteTarget = ref(null)
 const error = ref('')
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-const MAX_SIZE = 10 * 1024 * 1024
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif']
+const MAX_SIZE = 15 * 1024 * 1024
+const TARGET_MAX_DIM = 1920
+const TARGET_QUALITY = 0.82
+const COMPRESS_THRESHOLD = 500 * 1024 // compress if > 500 KB
+
+async function compressImage(file) {
+  if (file.size <= COMPRESS_THRESHOLD) return file
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        let { width, height } = img
+        if (width > TARGET_MAX_DIM || height > TARGET_MAX_DIM) {
+          if (width >= height) {
+            height = Math.round(height * TARGET_MAX_DIM / width)
+            width = TARGET_MAX_DIM
+          } else {
+            width = Math.round(width * TARGET_MAX_DIM / height)
+            height = TARGET_MAX_DIM
+          }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+        canvas.toBlob(
+          (blob) => {
+            const name = file.name.replace(/\.[^.]+$/, '.jpg')
+            resolve(new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() }))
+          },
+          'image/jpeg',
+          TARGET_QUALITY
+        )
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
 
 async function fetchImages() {
   try {
@@ -122,22 +161,22 @@ async function fetchImages() {
 async function uploadFiles(files) {
   error.value = ''
   for (const file of files) {
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const mimeOk = ALLOWED_TYPES.includes(file.type) || file.type.startsWith('image/')
+    if (!mimeOk) {
       error.value = `Ungültiges Dateiformat: ${file.name}. Erlaubt: JPEG, PNG, GIF, WebP`
       continue
     }
     if (file.size > MAX_SIZE) {
-      error.value = `Datei zu gross: ${file.name}. Maximal 10 MB erlaubt.`
+      error.value = `Datei zu gross: ${file.name}. Maximal 15 MB erlaubt.`
       continue
     }
 
     uploading.value = true
     try {
+      const compressed = await compressImage(file)
       const formData = new FormData()
-      formData.append('image', file)
-      const res = await api.post(`/${props.type}/${props.modelId}/images`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      formData.append('image', compressed)
+      const res = await api.post(`/${props.type}/${props.modelId}/images`, formData)
       images.value.push(res.data.data)
     } catch (e) {
       toast.error(`Fehler beim Hochladen von ${file.name}`)
