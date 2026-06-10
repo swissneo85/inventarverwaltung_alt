@@ -42,9 +42,9 @@ RUN cd /tmp/frontend && npm install && mkdir -p /var/www/html/public
 COPY frontend/ /tmp/frontend/
 RUN cd /tmp/frontend && npm run build && cp -r dist/* /var/www/html/public/
 
-# Install PHP dependencies (--no-scripts verhindert Post-Install Fehler)
-RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-interaction \
-    && composer dump-autoload --optimize --no-scripts
+# Install PHP dependencies (OHNE --no-scripts — wichtig für Laravel!)
+RUN composer install --no-dev --ignore-platform-reqs --no-interaction \
+    && composer dump-autoload --optimize
 
 # Permissions
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache /app/data /run/php \
@@ -52,6 +52,10 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
 
 # Create DB
 RUN touch /app/data/database.sqlite && chmod 666 /app/data/database.sqlite
+
+# Symlinks für PHP-FPM (arbeitet aus /var/www/html/public)
+RUN ln -s /var/www/html/routes /var/www/html/public/routes \
+    && ln -s /var/www/html/storage/app/public /var/www/html/public/storage
 
 # Copy configs
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->boolean('success')->default(false);
             $table->string('failure_reason')->nullable();
             $table->timestamp('login_at');
+            $table->timestamps();
             
             $table->index(['ip_address', 'success']);
             $table->index('login_at');
