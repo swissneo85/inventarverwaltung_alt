@@ -18,8 +18,23 @@ WORKDIR /var/www/html
 # Copy backend
 COPY backend/ .
 
-# Copy production .env as default
-COPY backend/.env.production .env
+# Create .env file directly (not from gitignored file)
+RUN cat > /var/www/html/.env <<'EOF'
+APP_NAME=Inventarverwaltung
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=http://localhost:3004
+FRONTEND_URL=http://localhost:3004
+DB_CONNECTION=sqlite
+DB_DATABASE=/app/data/database.sqlite
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+LOG_CHANNEL=errorlog
+LOG_LEVEL=warning
+EOF
 
 # Build frontend
 COPY frontend/package.json /tmp/frontend/package.json
