@@ -30,6 +30,9 @@
         </div>
       </form>
     </div>
+    <div v-if="id" class="card form-card" style="margin-top:1rem">
+      <ImageGallery type="boxes" :model-id="id" />
+    </div>
   </div>
 </template>
 
@@ -38,6 +41,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
+import ImageGallery from '@/components/ImageGallery.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -74,12 +78,14 @@ async function save() {
     if (id) {
       await api.put(`/boxes/${id}`, form.value)
       toast.success('Aktualisiert')
+      router.push('/boxes')
     } else {
       form.value.is_in_inbox = !form.value.room_id
-      await api.post('/boxes', form.value)
+      const res = await api.post('/boxes', form.value)
       toast.success('Erstellt')
+      const newId = res.data.data?.id
+      router.push(newId ? `/boxes/${newId}/edit` : '/boxes')
     }
-    router.push('/boxes')
   } catch (e) {
     toast.error('Fehler beim Speichern')
   }

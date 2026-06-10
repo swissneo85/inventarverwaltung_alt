@@ -63,6 +63,11 @@ class Box extends Model
         return $this->hasMany(Item::class);
     }
 
+    public function images()
+    {
+        return $this->morphMany(\App\Models\ItemImage::class, 'imageable')->orderBy('sort_order');
+    }
+
     /**
      * QR-Code generieren
      */
