@@ -347,7 +347,6 @@ const pagination = ref({
 })
 
 onMounted(async () => {
-  // Load categories and rooms
   try {
     const [catRes, roomRes] = await Promise.all([
       api.get('/categories'),
@@ -358,9 +357,14 @@ onMounted(async () => {
   } catch (error) {
     console.error('Fehler beim Laden:', error)
   }
-  
-  // Load items
+
   await fetchItems()
+
+  // Auto-open modal when navigating from Dashboard (?new=1)
+  if (route.query.new) {
+    openCreate()
+    router.replace({ path: '/items' })
+  }
 })
 
 const handleSearch = debounce(() => {
@@ -450,26 +454,34 @@ function addPhoto(e) {
 async function compressImage(file) {
   if (file.size <= 500 * 1024) return file
   return new Promise(resolve => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      const img = new Image()
-      img.onload = () => {
-        const MAX = 1920
-        let { width, height } = img
-        if (width > MAX || height > MAX) {
-          if (width >= height) { height = Math.round(height * MAX / width); width = MAX }
-          else { width = Math.round(width * MAX / height); height = MAX }
+    const fallback = () => resolve(file)
+    try {
+      const reader = new FileReader()
+      reader.onerror = fallback
+      reader.onload = e => {
+        const img = new Image()
+        img.onerror = fallback
+        img.onload = () => {
+          try {
+            const MAX = 1920
+            let { width, height } = img
+            if (width > MAX || height > MAX) {
+              if (width >= height) { height = Math.round(height * MAX / width); width = MAX }
+              else { width = Math.round(width * MAX / height); height = MAX }
+            }
+            const canvas = document.createElement('canvas')
+            canvas.width = width; canvas.height = height
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+            canvas.toBlob(blob => {
+              if (!blob) { fallback(); return }
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }))
+            }, 'image/jpeg', 0.82)
+          } catch { fallback() }
         }
-        const canvas = document.createElement('canvas')
-        canvas.width = width; canvas.height = height
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
-        canvas.toBlob(blob => {
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }))
-        }, 'image/jpeg', 0.82)
+        img.src = e.target.result
       }
-      img.src = e.target.result
-    }
-    reader.readAsDataURL(file)
+      reader.readAsDataURL(file)
+    } catch { fallback() }
   })
 }
 
@@ -486,15 +498,15 @@ async function saveCreate() {
           const fd = new FormData()
           fd.append('image', compressed)
           await api.post(`/items/${newId}/images`, fd)
-        } catch {}
+        } catch { /* einzelner Bild-Fehler überspringen */ }
       }
     }
     toast.success('Gegenstand erstellt')
-    createModal.value.show = false
     await fetchItems()
   } catch {
     toast.error('Fehler beim Speichern')
   } finally {
+    createModal.value.show = false   // immer schliessen
     createModal.value.saving = false
   }
 }
