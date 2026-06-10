@@ -13,7 +13,7 @@ class BoxController extends BaseApiController
      */
     public function index(Request $request)
     {
-        $query = Box::with(['room:id,name'])->withCount('items');
+        $query = Box::with(['room:id,name', 'coverImage'])->withCount('items');
         
         // Filter
         if ($request->has('room_id')) {

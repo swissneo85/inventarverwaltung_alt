@@ -4,8 +4,7 @@
       <h1>Räume</h1>
       <button class="btn-primary" @click="showModal = true">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
         Neuer Raum
       </button>
@@ -16,7 +15,114 @@
       <p>Wird geladen...</p>
     </div>
 
-    <div v-else-if="rooms.length === 0" class="empty-state">
+    <template v-else-if="rooms.length > 0">
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button :class="['toggle-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'" title="Liste">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          Liste
+        </button>
+        <button :class="['toggle-btn', { active: viewMode === 'gallery' }]" @click="viewMode = 'gallery'" title="Galerie">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>
+          </svg>
+          Galerie
+        </button>
+        <button :class="['toggle-btn', { active: viewMode === 'table' }]" @click="viewMode = 'table'" title="Tabelle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+          Tabelle
+        </button>
+      </div>
+
+      <!-- List View -->
+      <div v-if="viewMode === 'list'" class="list-view">
+        <div v-for="room in rooms" :key="room.id" class="list-card">
+          <div class="list-thumb">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+          </div>
+          <div class="list-info">
+            <div class="list-name">{{ room.name }}</div>
+            <div class="list-sub">{{ room.description || '' }}</div>
+          </div>
+          <div class="list-stats">
+            <span class="stat-chip">{{ room.items_count || 0 }} Items</span>
+            <span class="stat-chip">{{ room.boxes_count || 0 }} Boxen</span>
+          </div>
+          <div class="list-actions">
+            <router-link :to="`/rooms/${room.id}`" class="row-btn" title="Ansehen">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </router-link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gallery View -->
+      <div v-else-if="viewMode === 'gallery'" class="gallery-view">
+        <router-link v-for="room in rooms" :key="room.id" :to="`/rooms/${room.id}`" class="gallery-card">
+          <div class="gallery-placeholder room-placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+          </div>
+          <div class="gallery-info">
+            <div class="gallery-id">R{{ room.id }}</div>
+            <div class="gallery-name">{{ room.name }}</div>
+            <div class="gallery-stats">
+              <span>{{ room.items_count || 0 }} Items</span>
+              <span>{{ room.boxes_count || 0 }} Boxen</span>
+            </div>
+          </div>
+        </router-link>
+      </div>
+
+      <!-- Table View -->
+      <div v-else class="table-card">
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Raum</th>
+                <th>Beschreibung</th>
+                <th>Items</th>
+                <th>Boxen</th>
+                <th style="width:60px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="room in rooms" :key="room.id" class="table-row">
+                <td class="td-main">
+                  <router-link :to="`/rooms/${room.id}`" class="row-name">{{ room.name }}</router-link>
+                  <span class="row-id">R{{ room.id }}</span>
+                </td>
+                <td class="muted-text">{{ room.description || '—' }}</td>
+                <td><span class="chip">{{ room.items_count || 0 }}</span></td>
+                <td><span class="chip">{{ room.boxes_count || 0 }}</span></td>
+                <td class="td-actions">
+                  <router-link :to="`/rooms/${room.id}`" class="row-btn" title="Ansehen">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </router-link>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+
+    <div v-else class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       </svg>
@@ -25,36 +131,7 @@
       <button class="btn-primary" @click="showModal = true">Raum erstellen</button>
     </div>
 
-    <div v-else class="rooms-grid">
-      <div v-for="room in rooms" :key="room.id" class="room-card card">
-        <div class="room-header">
-          <div class="room-id">R{{ room.id }}</div>
-          <div class="room-info">
-            <h3>{{ room.name }}</h3>
-            <p v-if="room.description">{{ room.description }}</p>
-          </div>
-        </div>
-        <div class="room-stats">
-          <div class="stat">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            </svg>
-            <span>{{ room.items_count || 0 }} Items</span>
-          </div>
-          <div class="stat">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            </svg>
-            <span>{{ room.boxes_count || 0 }} Boxen</span>
-          </div>
-        </div>
-        <div class="room-actions">
-          <router-link :to="`/rooms/${room.id}`" class="btn-secondary">Ansehen</router-link>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal for creating room -->
+    <!-- Modal -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal">
         <div class="modal-header">
@@ -74,9 +151,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn-secondary" @click="showModal = false">Abbrechen</button>
-            <button type="submit" class="btn-primary" :disabled="saving">
-              {{ saving ? 'Speichern...' : 'Erstellen' }}
-            </button>
+            <button type="submit" class="btn-primary" :disabled="saving">{{ saving ? 'Speichern...' : 'Erstellen' }}</button>
           </div>
         </form>
       </div>
@@ -85,7 +160,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 
@@ -96,6 +171,9 @@ const showModal = ref(false)
 const saving = ref(false)
 const newRoom = ref({ name: '', description: '' })
 
+const viewMode = ref(localStorage.getItem('rooms-view-mode') || 'list')
+watch(viewMode, val => localStorage.setItem('rooms-view-mode', val))
+
 onMounted(fetchRooms)
 
 async function fetchRooms() {
@@ -103,7 +181,7 @@ async function fetchRooms() {
   try {
     const response = await api.get('/rooms')
     rooms.value = response.data.data
-  } catch (error) {
+  } catch {
     toast.error('Fehler beim Laden der Räume')
   } finally {
     loading.value = false
@@ -118,7 +196,7 @@ async function createRoom() {
     showModal.value = false
     newRoom.value = { name: '', description: '' }
     fetchRooms()
-  } catch (error) {
+  } catch {
     toast.error('Fehler beim Erstellen')
   } finally {
     saving.value = false
@@ -127,186 +205,115 @@ async function createRoom() {
 </script>
 
 <style lang="scss" scoped>
-.rooms-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
+.rooms-page { max-width: 1200px; margin: 0 auto; }
 
 .page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0;
-  }
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
+  h1 { font-size: 1.5rem; font-weight: 600; margin: 0; }
 }
 
-.rooms-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+.view-toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.toggle-btn {
+  display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb; background: white; border-radius: 8px;
+  font-size: 0.875rem; color: #6b7280; cursor: pointer; transition: all 0.2s;
+  &.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+  &:hover:not(.active) { background: #f3f4f6; }
 }
 
-.room-card {
-  padding: 1.25rem;
+/* List */
+.list-view { display: flex; flex-direction: column; gap: 0.75rem; }
+.list-card {
+  display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1rem;
+  background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s;
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+}
+.list-thumb {
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px;
+  background: #fef3c7; color: #92400e; display: flex; align-items: center; justify-content: center;
+}
+.list-info { flex: 1; min-width: 0; }
+.list-name { font-weight: 600; font-size: 0.9rem; color: #111827; }
+.list-sub { font-size: 0.8rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-stats { display: flex; gap: 0.5rem; }
+.stat-chip {
+  font-size: 0.75rem; padding: 0.2rem 0.6rem; background: #f3f4f6;
+  color: #6b7280; border-radius: 99px; white-space: nowrap;
+}
+.list-actions { display: flex; gap: 0.25rem; }
+
+/* Gallery */
+.gallery-view {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem;
+}
+.gallery-card {
+  background: white; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-decoration: none; color: inherit;
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex; flex-direction: column;
+  &:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.12); transform: translateY(-2px); }
+}
+.gallery-placeholder {
+  width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+}
+.room-placeholder { background: #fef9ec; color: #d97706; }
+.gallery-info { padding: 0.75rem; }
+.gallery-id { font-size: 0.7rem; font-weight: 600; color: #d97706; }
+.gallery-name { font-size: 0.875rem; font-weight: 600; color: #111827; margin: 0.1rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gallery-stats { display: flex; gap: 0.5rem; font-size: 0.72rem; color: #9ca3af; margin-top: 0.25rem; }
+
+/* Table */
+.table-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; }
+.table-container { overflow-x: auto; }
+.table {
+  width: 100%; border-collapse: collapse; font-size: 0.875rem;
+  thead tr { background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #9ca3af; }
+  td { padding: 0.75rem 1rem; vertical-align: middle; border-bottom: 1px solid #f3f4f6; }
+  .table-row { transition: background 0.12s; &:last-child td { border-bottom: none; } &:hover { background: #f9fafb; } }
+}
+.td-main { display: flex; flex-direction: column; gap: 0.1rem; }
+.row-name { font-weight: 600; color: #111827; text-decoration: none; &:hover { color: #3b82f6; } }
+.row-id { font-size: 0.7rem; color: #9ca3af; }
+.chip { display: inline-block; padding: 0.2rem 0.6rem; background: #f3f4f6; color: #374151; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.muted-text { color: #9ca3af; font-size: 0.85rem; }
+.td-actions { display: flex; gap: 0.25rem; align-items: center; }
+.row-btn {
+  display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+  border-radius: 6px; color: #9ca3af; text-decoration: none; transition: all 0.15s;
+  &:hover { background: #eff6ff; color: #3b82f6; }
 }
 
-.room-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.room-id {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fef3c7;
-  color: #92400e;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.room-info {
-  flex: 1;
-  
-  h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0 0 0.25rem;
-  }
-  
-  p {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0;
-  }
-}
-
-.room-stats {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  
-  .stat {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-}
-
-.room-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
+/* States */
 .loading-state, .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
-  
-  svg {
-    color: #d1d5db;
-    margin-bottom: 1rem;
-  }
-  
-  h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin: 0 0 0.5rem;
-  }
-  
-  p {
-    color: #6b7280;
-    margin: 0 0 1rem;
-  }
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center;
+  svg { color: #d1d5db; margin-bottom: 1rem; }
+  h3 { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.5rem; }
+  p { color: #6b7280; margin: 0 0 1rem; }
 }
-
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #3b82f6;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
+/* Modal */
 .modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
-
-.modal {
-  background: white;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
+.modal { background: white; border-radius: 12px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
 .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
-  
-  h2 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin: 0;
-  }
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem; border-bottom: 1px solid #e5e7eb;
+  h2 { font-size: 1.125rem; font-weight: 600; margin: 0; }
 }
-
 .btn-close {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #6b7280;
-  cursor: pointer;
-  
-  &:hover {
-    color: #1f2937;
-  }
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer;
+  &:hover { color: #1f2937; }
 }
-
-.modal-body {
-  padding: 1.25rem;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-top: 1px solid #e5e7eb;
-}
+.modal-body { padding: 1.25rem; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.25rem; border-top: 1px solid #e5e7eb; }
 </style>
