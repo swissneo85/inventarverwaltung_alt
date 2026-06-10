@@ -5,19 +5,9 @@ Webbasierte Inventarverwaltung mit Vue.js Frontend und Laravel Backend.
 
 ---
 
-## 🚨 WICHTIG: Bekannte Probleme & Fixes
-
-| Problem | Ursache | Fix |
-|---------|---------|-----|
-| Hostinger stürzt ab / hängt 30min | `php artisan optimize` beim Start frisst zu viel RAM | Start-Skript überarbeitet — kein optimize mehr |
-| Login `admin` / `admin123` funktioniert nicht | `APP_KEY` war nicht gesetzt → Sanctum Token konnte nicht erstellt werden | APP_KEY wird jetzt automatisch generiert |
-| Image zu groß für VPS | Altes Dockerfile baute alles in einem Schritt | Multi-Stage Build — Image ~50% kleiner |
-
----
-
 ## 🚀 Schnellstart für Hostinger VPS
 
-### 1. Verbinde dich per SSH mit deinem Hostinger-Server
+### 1. Verbinde dich per SSH mit deinem Server
 
 ### 2. Erstelle einen Ordner und wechsle hinein
 
@@ -25,36 +15,67 @@ Webbasierte Inventarverwaltung mit Vue.js Frontend und Laravel Backend.
 mkdir inventarverwaltung && cd inventarverwaltung
 ```
 
-### 3. Lade das Setup-Skript herunter
+### 3. Fertige `docker-compose.yml` herunterladen
 
 ```bash
-curl -sL https://raw.githubusercontent.com/swissneo85/inventarverwaltung_alt/main/hostinger-setup.sh -o setup.sh
-chmod +x setup.sh
+curl -sL https://raw.githubusercontent.com/swissneo85/inventarverwaltung_alt/main/docker-compose.hostinger.yml -o docker-compose.yml
 ```
 
-Oder **manuell** (schneller):
+### 4. Ordner für Daten anlegen
 
 ```bash
-# .env mit APP_KEY erstellen
-echo "APP_KEY=base64:$(openssl rand -base64 32)" > .env
-echo "APP_URL=http://localhost:3004" >> .env
-
-# Docker Compose Datei
-curl -sL https://raw.githubusercontent.com/swissneo85/inventarverwaltung_alt/main/docker-compose.hostinger.yml -o docker-compose.yml
-
-# Ordner für Daten anlegen
 mkdir -p data storage
+```
 
-# Container starten
+### 5. Container starten
+
+```bash
 docker compose up -d
 ```
 
-### 4. Zugriff
+### 6. Zugriff
 
 - **URL:** `http://DEINE-SERVER-IP:3004`
 - **Login:** `admin` / `admin123`
 
 > ⚠️ **Sofort das Passwort ändern nach dem ersten Login!**
+
+---
+
+## 📋 Fertige docker-compose.yml
+
+Falls du die Datei manuell erstellen willst, hier der komplette Inhalt:
+
+```yaml
+# ============================================
+# Inventarverwaltung - Fertige Hostinger YAML
+# ============================================
+
+services:
+  inventarverwaltung:
+    image: ghcr.io/swissneo85/inventarverwaltung_alt:hostinger
+    container_name: inventarverwaltung
+    restart: unless-stopped
+    ports:
+      - "3004:80"
+    volumes:
+      - ./data:/app/data
+      - ./storage:/var/www/html/storage
+    environment:
+      - APP_KEY=base64:6r/rs5zrUT4/4KV/4CungM+tqTL11u/4Wg2v7iMA1x8=
+      - APP_NAME=Inventarverwaltung
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=http://localhost:3004
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/app/data/database.sqlite
+      - SESSION_DRIVER=file
+      - SESSION_LIFETIME=120
+      - CACHE_DRIVER=file
+      - QUEUE_CONNECTION=sync
+      - LOG_CHANNEL=errorlog
+      - LOG_LEVEL=warning
+```
 
 ---
 
