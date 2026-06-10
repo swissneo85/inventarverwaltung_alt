@@ -1,32 +1,53 @@
 # ============================================
-# Ein-Befehl-Deployment für Hostinger VPS
+# Hostinger VPS - Ein-Befehl-Deployment
+# ============================================
+# 1. Kopiere diese Datei als docker-compose.yml auf deinen Server
+# 2. Erstelle einen APP_KEY: openssl rand -base64 32
+# 3. Speichere den Key in einer .env-Datei oder setze ihn direkt unten
+# 4. docker compose up -d
 # ============================================
 
 services:
   inventarverwaltung:
-    image: ghcr.io/swissneo85/inventarverwaltung:latest
+    image: ghcr.io/swissneo85/inventarverwaltung_alt:hostinger
     container_name: inventarverwaltung
     restart: unless-stopped
     ports:
       - "3004:80"
     volumes:
-      # Persistente Daten
+      # Persistente SQLite Datenbank
       - ./data:/app/data
+      # Persistente Logs/Uploads
       - ./storage:/var/www/html/storage
     environment:
-      # App Configuration
+      # WICHTIG: Ersetze diesen Demo-Key!
+      # Generiere mit: openssl rand -base64 32
+      - APP_KEY=base64:REPLACE_ME_WITH_REAL_KEY
+      # ODER setze ihn in einer .env-Datei und referenziere mit: ${APP_KEY}
+      
       - APP_NAME=Inventarverwaltung
       - APP_ENV=production
-      - APP_KEY=${APP_KEY}
       - APP_DEBUG=false
       - APP_URL=http://localhost:3004
       
-      # Database
+      # SQLite (Single-Container, kein MySQL nötig)
       - DB_CONNECTION=sqlite
       - DB_DATABASE=/app/data/database.sqlite
       
-      # Sessions
+      # Sessions als Datei (Spart DB-Verbindungen)
       - SESSION_DRIVER=file
+      - SESSION_LIFETIME=120
       
-      # WICHTIG: Ändere dies zu deinem eigenen Secret!
-      # Generiere mit: openssl rand -base64 32
+      # Cache als Datei (Spart DB-Verbindungen)
+      - CACHE_DRIVER=file
+      - QUEUE_CONNECTION=sync
+      
+      # Logging
+      - LOG_CHANNEL=errorlog
+      - LOG_LEVEL=warning
+
+# ============================================
+# Login nach dem ersten Start:
+#   Benutzer: admin
+#   Passwort: admin123
+# ============================================
