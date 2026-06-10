@@ -31,17 +31,4 @@ class BaseApiController extends Controller
             'errors' => $errors,
         ], $code);
     }
-
-    /**
-     * QR-Code generieren und zurückgeben
-     */
-    protected function generateQrCode(string $url): string
-    {
-        $qrCode = QrCode::format('png')
-            ->size(300)
-            ->margin(2)
-            ->generate($url);
-        
-        return 'data:image/png;base64,' . base64_encode($qrCode);
-    }
 }
