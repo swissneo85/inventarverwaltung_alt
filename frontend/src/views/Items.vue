@@ -2,13 +2,13 @@
   <div class="items-page">
     <div class="page-header">
       <h1>Gegenstände</h1>
-      <router-link to="/items/create" class="btn-primary">
+      <button class="btn btn-primary" @click="openCreate">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
         Neuer Gegenstand
-      </router-link>
+      </button>
     </div>
     
     <!-- Filters -->
@@ -238,20 +238,90 @@
         Weiter
       </button>
     </div>
+
+    <!-- ── Create Modal ── -->
+    <Teleport to="body">
+      <div v-if="createModal.show" class="modal-backdrop" @click.self="closeCreate">
+        <div class="modal-sheet">
+          <div class="modal-header">
+            <span class="modal-title">Neuer Gegenstand</span>
+            <button class="modal-close" @click="closeCreate">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Photo row -->
+            <div class="photo-row">
+              <div class="photo-previews">
+                <div v-for="(pf, i) in createModal.pendingFiles" :key="i" class="photo-thumb">
+                  <img :src="pf.preview" alt="">
+                  <button type="button" class="photo-remove" @click="createModal.pendingFiles.splice(i,1)">×</button>
+                </div>
+                <label class="photo-add-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg>
+                  <span>Foto</span>
+                  <input type="file" accept="image/*" capture="environment" @change="addPhoto" style="display:none">
+                </label>
+                <label class="photo-add-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  <span>Galerie</span>
+                  <input type="file" accept="image/*" multiple @change="addPhoto" style="display:none">
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Name *</label>
+              <input v-model="createModal.form.name" type="text" placeholder="z.B. Laptop, Stuhl..." required autofocus>
+            </div>
+            <div class="form-group">
+              <label>Kategorie</label>
+              <select v-model="createModal.form.category_id">
+                <option value="">Keine</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Beschreibung</label>
+              <textarea v-model="createModal.form.description" rows="2" placeholder="Optional..."></textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="closeCreate">Abbrechen</button>
+            <button class="btn btn-primary" :disabled="createModal.saving || !createModal.form.name" @click="saveCreate">
+              {{ createModal.saving ? 'Wird gespeichert…' : 'Speichern' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useItemsStore } from '@/stores/items'
 import api from '@/services/api'
 import ItemCard from '@/components/ItemCard.vue'
+import { useToast } from 'vue-toastification'
 import { debounce } from 'lodash'
 
 const STORAGE_KEY = 'items-view-mode'
 
 const route = useRoute()
+const router = useRouter()
+const toast = useToast()
 const itemsStore = useItemsStore()
 
 const items = ref([])
@@ -348,6 +418,85 @@ function getLocationText(item) {
 function conditionClass(condition) {
   const map = { 'Neu': 'cond-new', 'Gut': 'cond-good', 'Gebraucht': 'cond-used', 'Defekt': 'cond-broken' }
   return map[condition] || 'cond-default'
+}
+
+// ── Create Modal ──
+const createModal = ref({
+  show: false,
+  saving: false,
+  pendingFiles: [],
+  form: { name: '', description: '', category_id: '' }
+})
+
+function openCreate() {
+  createModal.value = { show: true, saving: false, pendingFiles: [], form: { name: '', description: '', category_id: '' } }
+}
+
+function closeCreate() {
+  if (createModal.value.saving) return
+  createModal.value.show = false
+}
+
+function addPhoto(e) {
+  Array.from(e.target.files).forEach(file => {
+    if (!file.type.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = ev => createModal.value.pendingFiles.push({ file, preview: ev.target.result })
+    reader.readAsDataURL(file)
+  })
+  e.target.value = ''
+}
+
+async function compressImage(file) {
+  if (file.size <= 500 * 1024) return file
+  return new Promise(resolve => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      const img = new Image()
+      img.onload = () => {
+        const MAX = 1920
+        let { width, height } = img
+        if (width > MAX || height > MAX) {
+          if (width >= height) { height = Math.round(height * MAX / width); width = MAX }
+          else { width = Math.round(width * MAX / height); height = MAX }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width; canvas.height = height
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+        canvas.toBlob(blob => {
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }))
+        }, 'image/jpeg', 0.82)
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+async function saveCreate() {
+  if (!createModal.value.form.name || createModal.value.saving) return
+  createModal.value.saving = true
+  try {
+    const res = await api.post('/items', createModal.value.form)
+    const newId = res.data.data?.id
+    if (newId && createModal.value.pendingFiles.length) {
+      for (const pf of createModal.value.pendingFiles) {
+        try {
+          const compressed = await compressImage(pf.file)
+          const fd = new FormData()
+          fd.append('image', compressed)
+          await api.post(`/items/${newId}/images`, fd)
+        } catch {}
+      }
+    }
+    toast.success('Gegenstand erstellt')
+    createModal.value.show = false
+    await fetchItems()
+  } catch {
+    toast.error('Fehler beim Speichern')
+  } finally {
+    createModal.value.saving = false
+  }
 }
 </script>
 
@@ -852,5 +1001,114 @@ function conditionClass(condition) {
   .items-gallery {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
+}
+
+/* ── Create Modal ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-sheet {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem 0;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modal-close {
+  width: 36px; height: 36px;
+  border: none; background: #f3f4f6; border-radius: 8px;
+  color: #6b7280; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  &:hover { background: #e5e7eb; }
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+
+  .btn { flex: 1; justify-content: center; }
+}
+
+/* Photo strip */
+.photo-row { margin-bottom: 1rem; }
+
+.photo-previews {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.photo-thumb {
+  position: relative;
+  width: 72px; height: 72px;
+  border-radius: 8px; overflow: hidden;
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.photo-remove {
+  position: absolute; top: 2px; right: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(239,68,68,0.85); color: #fff;
+  border: none; font-size: 0.8rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+
+.photo-add-btn {
+  width: 72px; height: 72px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; cursor: pointer; color: #6b7280; font-size: 0.7rem;
+  transition: border-color 0.15s, color 0.15s;
+  &:hover { border-color: #3b82f6; color: #3b82f6; }
+}
+
+/* Mobile: full-width bottom sheet */
+@media (max-width: 767px) {
+  .modal-backdrop {
+    align-items: flex-end;
+  }
+  .modal-sheet {
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    max-width: 100%;
+  }
+  .modal-header { padding: 1rem 1rem 0; }
+  .modal-body { padding: 1rem; }
+  .modal-footer { padding: 1rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
 }
 </style>
