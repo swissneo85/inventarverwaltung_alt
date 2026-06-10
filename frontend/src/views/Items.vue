@@ -222,6 +222,8 @@ import api from '@/services/api'
 import ItemCard from '@/components/ItemCard.vue'
 import { debounce } from 'lodash'
 
+const STORAGE_KEY = 'items-view-mode'
+
 const route = useRoute()
 const itemsStore = useItemsStore()
 
@@ -230,7 +232,8 @@ const categories = ref([])
 const rooms = ref([])
 const loading = ref(false)
 const showFilters = ref(false)
-const viewMode = ref('list')
+const viewMode = ref(localStorage.getItem(STORAGE_KEY) || 'list')
+watch(viewMode, val => localStorage.setItem(STORAGE_KEY, val))
 const searchQuery = ref('')
 const filters = ref({
   category_id: '',
