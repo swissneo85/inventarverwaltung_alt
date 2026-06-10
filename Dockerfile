@@ -1,15 +1,12 @@
 # ============================================
-# Inventarverwaltung - Ultra-Slim Single-Stage Dockerfile
+# Inventarverwaltung - Slim Single-Stage Dockerfile
 # ============================================
 # Optimiert für Hostinger VPS mit wenig RAM
 # Bauen mit: docker build -t inventarverwaltung:hostinger .
 
 FROM php:8.4-cli-alpine AS composer-build
-RUN apk add --no-cache unzip curl git
-COPY backend/composer.json backend/composer.lock* /app/
-WORKDIR /app
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+RUN apk add --no-cache curl
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 FROM node:22-alpine AS node-build
 COPY frontend/package*.json /app/
@@ -21,7 +18,6 @@ RUN npm run build
 FROM php:8.4-fpm-alpine
 LABEL maintainer="swissneo85"
 
-# Nur Essentials – kein Node, kein Composer, kein Git
 RUN apk add --no-cache nginx supervisor sqlite sqlite-dev \
     && docker-php-ext-install pdo_sqlite pdo_mysql \
     && mkdir -p /run/php /var/log/supervisor /app/data \
@@ -29,8 +25,13 @@ RUN apk add --no-cache nginx supervisor sqlite sqlite-dev \
 
 WORKDIR /var/www/html
 
-# Copy pre-built vendor + app code
-COPY --from=composer-build /app/vendor ./vendor
+# Copy Composer binary
+COPY --from=composer-build /usr/local/bin/composer /usr/local/bin/composer
+
+# Copy backend code
+COPY backend/composer.json backend/composer.lock* ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs \
+    && composer dump-autoload --optimize --no-interaction
 COPY backend/ .
 
 # Copy pre-built frontend → public
