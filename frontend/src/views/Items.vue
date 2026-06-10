@@ -138,41 +138,52 @@
     </div>
 
     <!-- Table View -->
-    <div v-else class="card">
+    <div v-else class="table-card">
       <div class="table-container">
         <table class="table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Name</th>
+              <th style="width:56px"></th>
+              <th>Gegenstand</th>
               <th>Kategorie</th>
               <th>Standort</th>
               <th>Zustand</th>
-              <th>Aktionen</th>
+              <th style="width:80px"></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in items" :key="item.id">
-              <td><span class="badge primary">I{{ item.id }}</span></td>
-              <td>{{ item.name }}</td>
-              <td>{{ item.category?.name || '-' }}</td>
-              <td>{{ getLocationText(item) }}</td>
-              <td>{{ item.condition || '-' }}</td>
-              <td>
-                <div class="actions">
-                  <router-link :to="`/items/${item.id}`" class="btn-icon-sm" title="Details">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </router-link>
-                  <router-link :to="`/items/${item.id}/edit`" class="btn-icon-sm" title="Bearbeiten">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                  </router-link>
+            <tr v-for="item in items" :key="item.id" class="table-row">
+              <td class="td-thumb">
+                <div class="row-thumb">
+                  <img v-if="item.cover_image" :src="item.cover_image.url" :alt="item.name" class="row-thumb-img">
+                  <span v-else class="row-thumb-id">{{ item.display_id || 'I' + item.id }}</span>
                 </div>
+              </td>
+              <td class="td-main">
+                <router-link :to="`/items/${item.id}`" class="row-name">{{ item.name }}</router-link>
+                <span class="row-id">{{ item.display_id || 'I' + item.id }}</span>
+              </td>
+              <td>
+                <span v-if="item.category" class="chip">{{ item.category.name }}</span>
+                <span v-else class="muted">—</span>
+              </td>
+              <td class="td-loc">{{ getLocationText(item) || '—' }}</td>
+              <td>
+                <span v-if="item.condition" :class="['condition-badge', conditionClass(item.condition)]">{{ item.condition }}</span>
+                <span v-else class="muted">—</span>
+              </td>
+              <td class="td-actions">
+                <router-link :to="`/items/${item.id}`" class="row-btn" title="Details">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </router-link>
+                <router-link :to="`/items/${item.id}/edit`" class="row-btn" title="Bearbeiten">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </router-link>
               </td>
             </tr>
           </tbody>
@@ -299,9 +310,14 @@ function changePage(page) {
 
 function getLocationText(item) {
   if (item.is_in_inbox) return 'Inbox'
-  if (item.box) return `B${item.box.id}`
-  if (item.room) return `R${item.room.id}`
-  return '-'
+  if (item.box) return item.box.name ? `${item.box.name}` : `B${item.box.id}`
+  if (item.room) return item.room.name ? `${item.room.name}` : `R${item.room.id}`
+  return ''
+}
+
+function conditionClass(condition) {
+  const map = { 'Neu': 'cond-new', 'Gut': 'cond-good', 'Gebraucht': 'cond-used', 'Defekt': 'cond-broken' }
+  return map[condition] || 'cond-default'
 }
 </script>
 
@@ -556,25 +572,144 @@ function getLocationText(item) {
   to { transform: rotate(360deg); }
 }
 
-.actions {
-  display: flex;
-  gap: 0.25rem;
+.table-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
-.btn-icon-sm {
+.table-container {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  thead tr {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #9ca3af;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .table-row {
+    transition: background 0.12s;
+    &:last-child td { border-bottom: none; }
+    &:hover { background: #f9fafb; }
+  }
+}
+
+.td-thumb { padding: 0.5rem 0.5rem 0.5rem 1rem; }
+
+.row-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #dbeafe;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.row-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.row-thumb-id {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.td-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 160px;
+}
+
+.row-name {
+  font-weight: 600;
+  color: #111827;
+  text-decoration: none;
+  &:hover { color: #3b82f6; }
+}
+
+.row-id {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.muted { color: #d1d5db; }
+
+.td-loc { color: #6b7280; white-space: nowrap; }
+
+.condition-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.cond-new     { background: #d1fae5; color: #065f46; }
+.cond-good    { background: #dbeafe; color: #1e40af; }
+.cond-used    { background: #fef3c7; color: #92400e; }
+.cond-broken  { background: #fee2e2; color: #991b1b; }
+.cond-default { background: #f3f4f6; color: #6b7280; }
+
+.td-actions {
+  white-space: nowrap;
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.row-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: #9ca3af;
+  text-decoration: none;
   transition: all 0.15s;
-  
-  &:hover {
-    background: #f3f4f6;
-    color: #3b82f6;
-  }
+  &:hover { background: #eff6ff; color: #3b82f6; }
 }
 
 .pagination {
