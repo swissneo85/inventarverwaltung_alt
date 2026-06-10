@@ -253,7 +253,7 @@
           </div>
 
           <div class="modal-body">
-            <!-- Photo row -->
+            <!-- Fotos -->
             <div class="photo-row">
               <div class="photo-previews">
                 <div v-for="(pf, i) in createModal.pendingFiles" :key="i" class="photo-thumb">
@@ -265,7 +265,7 @@
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"></path>
                     <circle cx="12" cy="13" r="4"></circle>
                   </svg>
-                  <span>Foto</span>
+                  <span>Kamera</span>
                   <input type="file" accept="image/*" capture="environment" @change="addPhoto" style="display:none">
                 </label>
                 <label class="photo-add-btn">
@@ -281,18 +281,97 @@
 
             <div class="form-group">
               <label>Name *</label>
-              <input v-model="createModal.form.name" type="text" placeholder="z.B. Laptop, Stuhl..." required autofocus>
+              <input v-model="createModal.form.name" type="text" placeholder="z.B. Laptop, Stuhl..." autofocus>
             </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Kategorie</label>
+                <select v-model="createModal.form.category_id">
+                  <option value="">Keine</option>
+                  <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Zustand</label>
+                <select v-model="createModal.form.condition">
+                  <option value="">–</option>
+                  <option>Neu</option>
+                  <option>Gut</option>
+                  <option>Gebraucht</option>
+                  <option>Defekt</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Marke</label>
+                <input v-model="createModal.form.brand" type="text" placeholder="z.B. Apple">
+              </div>
+              <div class="form-group">
+                <label>Modell</label>
+                <input v-model="createModal.form.model" type="text" placeholder="z.B. MacBook Pro">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Menge</label>
+                <input v-model="createModal.form.quantity" type="number" min="0" step="0.01">
+              </div>
+              <div class="form-group">
+                <label>Einheit</label>
+                <input v-model="createModal.form.unit" type="text" placeholder="z.B. Stück">
+              </div>
+            </div>
+
             <div class="form-group">
-              <label>Kategorie</label>
-              <select v-model="createModal.form.category_id">
-                <option value="">Keine</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-              </select>
+              <label>Seriennummer</label>
+              <input v-model="createModal.form.serial_number" type="text">
             </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Raum</label>
+                <select v-model="createModal.form.room_id" @change="createModal.form.box_id = ''">
+                  <option value="">–</option>
+                  <option v-for="r in rooms" :key="r.id" :value="r.id">{{ r.name }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Box</label>
+                <select v-model="createModal.form.box_id" @change="createModal.form.room_id = ''">
+                  <option value="">–</option>
+                  <option v-for="b in boxes" :key="b.id" :value="b.id">{{ b.name }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Kaufpreis (CHF)</label>
+                <input v-model="createModal.form.purchase_price" type="number" min="0" step="0.01">
+              </div>
+              <div class="form-group">
+                <label>Kaufdatum</label>
+                <input v-model="createModal.form.purchased_at" type="date">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Garantie bis</label>
+              <input v-model="createModal.form.warranty_until" type="date">
+            </div>
+
             <div class="form-group">
               <label>Beschreibung</label>
               <textarea v-model="createModal.form.description" rows="2" placeholder="Optional..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Notizen</label>
+              <textarea v-model="createModal.form.notes" rows="2" placeholder="Interne Notizen..."></textarea>
             </div>
           </div>
 
@@ -327,6 +406,7 @@ const itemsStore = useItemsStore()
 const items = ref([])
 const categories = ref([])
 const rooms = ref([])
+const boxes = ref([])
 const loading = ref(false)
 const showFilters = ref(false)
 const viewMode = ref(localStorage.getItem(STORAGE_KEY) || 'list')
@@ -348,12 +428,14 @@ const pagination = ref({
 
 onMounted(async () => {
   try {
-    const [catRes, roomRes] = await Promise.all([
+    const [catRes, roomRes, boxRes] = await Promise.all([
       api.get('/categories'),
       api.get('/rooms'),
+      api.get('/boxes', { params: { per_page: 200 } }),
     ])
     categories.value = catRes.data.data
     rooms.value = roomRes.data.data
+    boxes.value = boxRes.data.data?.data ?? boxRes.data.data
   } catch (error) {
     console.error('Fehler beim Laden:', error)
   }
@@ -433,7 +515,17 @@ const createModal = ref({
 })
 
 function openCreate() {
-  createModal.value = { show: true, saving: false, pendingFiles: [], form: { name: '', description: '', category_id: '' } }
+  createModal.value = {
+    show: true, saving: false, pendingFiles: [],
+    form: {
+      name: '', description: '', category_id: '',
+      brand: '', model: '', serial_number: '',
+      quantity: 1, unit: '', condition: '',
+      room_id: '', box_id: '',
+      purchase_price: '', purchased_at: '', warranty_until: '',
+      notes: '',
+    }
+  }
 }
 
 function closeCreate() {
@@ -1063,6 +1155,23 @@ async function saveCreate() {
   flex: 1;
   overflow-y: auto;
   padding: 1rem 1.25rem;
+
+  .form-group {
+    margin-bottom: 0.875rem;
+    label { font-size: 0.8rem; font-weight: 500; color: #374151; display: block; margin-bottom: 0.3rem; }
+    input, select, textarea {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db;
+      border-radius: 8px; font-size: 16px; background: white;
+      &:focus { outline: none; border-color: #3b82f6; }
+    }
+    textarea { resize: vertical; min-height: 60px; }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
 }
 
 .modal-footer {
