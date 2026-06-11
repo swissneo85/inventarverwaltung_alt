@@ -19,6 +19,11 @@
         <ImageGallery type="items" :model-id="id" :readonly="true" @loaded="n => imageCount = n" />
       </div>
 
+      <div v-if="item.documents && item.documents.length > 0" class="card detail-card">
+        <h2>Dokumente</h2>
+        <DocumentGallery :item-id="item.id" :documents="item.documents" :readonly="true" />
+      </div>
+
       <div class="card detail-card">
         <h2>Allgemein</h2>
         <div class="detail-row"><span>Kategorie</span><span>{{ item.category?.name || '–' }}</span></div>
@@ -75,6 +80,7 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import ImageGallery from '@/components/ImageGallery.vue'
+import DocumentGallery from '@/components/DocumentGallery.vue'
 
 const route = useRoute()
 const router = useRouter()

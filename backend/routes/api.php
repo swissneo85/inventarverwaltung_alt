@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\LoginLogController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ImageController;
+use App\Http\Controllers\Api\ItemDocumentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +86,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Bilder löschen
     Route::delete('/images/{imageId}', [ImageController::class, 'destroy']);
+
+    // Dokumente
+    Route::get('/items/{id}/documents', [ItemDocumentController::class, 'index']);
+    Route::post('/items/{id}/documents', [ItemDocumentController::class, 'store']);
+    Route::delete('/items/{id}/documents/{documentId}', [ItemDocumentController::class, 'destroy']);
     
     // Personen
     Route::get('persons/all', [PersonController::class, 'all']);

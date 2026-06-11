@@ -158,6 +158,11 @@ class Item extends Model
         return $this->morphMany(\App\Models\ItemImage::class, 'imageable')->orderBy('sort_order');
     }
 
+    public function documents()
+    {
+        return $this->hasMany(ItemDocument::class)->orderBy('type');
+    }
+
     public function coverImage()
     {
         return $this->morphOne(\App\Models\ItemImage::class, 'imageable')->orderBy('sort_order');

@@ -198,6 +198,17 @@
         </form>
       </div>
 
+      <!-- Dokumente (nur im Edit-Modus) -->
+      <div v-if="id" class="card form-card">
+        <h3 class="section-title">Dokumente</h3>
+        <DocumentGallery
+          :item-id="id"
+          :documents="documents"
+          :readonly="false"
+          @update="loadDocuments"
+        />
+      </div>
+
       <!-- Delete (edit mode only) -->
       <div v-if="id" class="danger-zone">
         <button type="button" class="btn-delete" @click="confirmDelete = true">🗑 Gegenstand löschen</button>
@@ -226,6 +237,7 @@ import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import ImageGallery from '@/components/ImageGallery.vue'
 import SearchableSelect from '@/components/SearchableSelect.vue'
+import DocumentGallery from '@/components/DocumentGallery.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -236,6 +248,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const confirmDelete = ref(false)
+const documents = ref([])
 const categories = ref([])
 const rooms = ref([])
 const boxes = ref([])
@@ -277,6 +290,16 @@ const form = ref({
   purchased_at: '',
   warranty_until: '',
 })
+
+async function loadDocuments() {
+  if (!id) return
+  try {
+    const res = await api.get(`/items/${id}/documents`)
+    documents.value = res.data.data ?? []
+  } catch {
+    // silent — documents are non-critical
+  }
+}
 
 onMounted(async () => {
   loading.value = true
@@ -348,6 +371,7 @@ onMounted(async () => {
         router.replace({ query: { ...route.query, newPersonId: undefined } })
       }
     }
+    if (id) await loadDocuments()
   } catch {
     toast.error('Fehler beim Laden')
     router.push({ name: 'Items' })
@@ -449,6 +473,8 @@ async function save() {
 
 <style scoped>
 .page { max-width: 800px; margin: 0 auto; }
+
+.section-title { font-size: 1rem; font-weight: 600; margin: 0 0 1rem; color: #111827; }
 
 .page-header {
   display: flex;

@@ -167,7 +167,7 @@ class ItemController extends BaseApiController
             return $this->error('Item nicht gefunden', 404);
         }
 
-        $item->load(['category', 'subcategory', 'person', 'loanedToPerson', 'room', 'box']);
+        $item->load(['category', 'subcategory', 'person', 'loanedToPerson', 'room', 'box', 'documents']);
         $item->qr_code_image = $item->qr_token ? $item->getQrCodeImageBase64() : null;
 
         return $this->success($item);
