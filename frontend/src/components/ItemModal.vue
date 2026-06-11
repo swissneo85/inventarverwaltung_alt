@@ -157,10 +157,31 @@
 
         <!-- Footer -->
         <div class="modal-footer">
+          <button v-if="itemId" class="btn btn-danger" :disabled="saving" @click="confirmDelete = true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path><path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+          </button>
           <button class="btn btn-secondary" @click="close" :disabled="saving">Abbrechen</button>
           <button class="btn btn-primary" :disabled="saving || !form.name" @click="save">
             {{ saving ? 'Wird gespeichert…' : 'Speichern' }}
           </button>
+        </div>
+
+        <!-- Delete confirmation overlay -->
+        <div v-if="confirmDelete" class="confirm-overlay" @click.self="confirmDelete = false">
+          <div class="confirm-dialog">
+            <p>Gegenstand wirklich löschen?</p>
+            <div class="confirm-actions">
+              <button class="btn btn-secondary" @click="confirmDelete = false">Abbrechen</button>
+              <button class="btn btn-danger" :disabled="saving" @click="deleteItem">
+                {{ saving ? '…' : 'Löschen' }}
+              </button>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -183,6 +204,7 @@ const toast = useToast()
 
 const loading = ref(false)
 const saving = ref(false)
+const confirmDelete = ref(false)
 const categories = ref([])
 const rooms = ref([])
 const boxes = ref([])
@@ -321,6 +343,22 @@ function close() {
   if (saving.value) return
   emit('close')
 }
+
+async function deleteItem() {
+  if (!props.itemId || saving.value) return
+  saving.value = true
+  try {
+    await api.delete(`/items/${props.itemId}`)
+    toast.success('Gegenstand gelöscht')
+    emit('saved', null)
+    emit('close')
+  } catch {
+    toast.error('Fehler beim Löschen')
+  } finally {
+    saving.value = false
+    confirmDelete.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -335,6 +373,7 @@ function close() {
 }
 
 .modal-sheet {
+  position: relative;
   background: white;
   border-radius: 16px;
   width: 100%;
@@ -487,5 +526,58 @@ function close() {
   }
 
   .form-row { grid-template-columns: 1fr; }
+}
+
+.btn-danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { background: #fecaca; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.confirm-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: inherit;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+  p {
+    margin: 0 0 1.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #111827;
+  }
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
 }
 </style>
