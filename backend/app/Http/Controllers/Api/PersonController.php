@@ -9,13 +9,21 @@ class PersonController extends BaseApiController
 {
     public function index()
     {
+        return $this->success(Person::where('is_active', true)->orderBy('name')->get());
+    }
+
+    public function all()
+    {
         return $this->success(Person::orderBy('name')->get());
     }
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
-        $person = Person::create($request->only('name'));
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'is_active' => 'nullable|boolean',
+        ]);
+        $person = Person::create($request->only('name', 'is_active') + ['is_active' => $request->input('is_active', true)]);
         return $this->success($person, 'Person erstellt', 201);
     }
 
@@ -34,8 +42,11 @@ class PersonController extends BaseApiController
         if (!$person) {
             return $this->error('Person nicht gefunden', 404);
         }
-        $request->validate(['name' => 'required|string|max:255']);
-        $person->update($request->only('name'));
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'is_active' => 'nullable|boolean',
+        ]);
+        $person->update($request->only('name', 'is_active'));
         return $this->success($person, 'Person aktualisiert');
     }
 

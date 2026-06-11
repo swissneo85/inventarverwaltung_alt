@@ -111,6 +111,7 @@ class ItemController extends BaseApiController
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:categories,id',
             'person_id' => 'nullable|exists:persons,id',
+            'loaned_to_person_id' => 'nullable|exists:persons,id',
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
@@ -152,7 +153,7 @@ class ItemController extends BaseApiController
 
         $item = Item::create($validated);
 
-        return $this->success($item->load(['category', 'person', 'room', 'box']), 'Item erstellt', 201);
+        return $this->success($item->load(['category', 'person', 'loanedToPerson', 'room', 'box']), 'Item erstellt', 201);
     }
 
     /**
@@ -166,7 +167,7 @@ class ItemController extends BaseApiController
             return $this->error('Item nicht gefunden', 404);
         }
 
-        $item->load(['category', 'subcategory', 'room', 'box']);
+        $item->load(['category', 'subcategory', 'person', 'loanedToPerson', 'room', 'box']);
         $item->qr_code_image = $item->qr_token ? $item->getQrCodeImageBase64() : null;
 
         return $this->success($item);
@@ -189,6 +190,7 @@ class ItemController extends BaseApiController
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:categories,id',
             'person_id' => 'nullable|exists:persons,id',
+            'loaned_to_person_id' => 'nullable|exists:persons,id',
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
@@ -221,7 +223,7 @@ class ItemController extends BaseApiController
 
         $item->update($validated);
 
-        return $this->success($item->load(['category', 'person', 'room', 'box']), 'Item aktualisiert');
+        return $this->success($item->load(['category', 'person', 'loanedToPerson', 'room', 'box']), 'Item aktualisiert');
     }
 
     /**

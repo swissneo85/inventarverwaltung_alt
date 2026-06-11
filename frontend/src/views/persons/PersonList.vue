@@ -21,11 +21,12 @@
       <div
         v-for="person in persons"
         :key="person.id"
-        class="person-row"
+        :class="['person-row', { 'person-row--inactive': !person.is_active }]"
         @click="$router.push({ name: 'PersonEdit', params: { id: person.id } })"
       >
         <div class="person-info">
           <span class="person-name">{{ person.name }}</span>
+          <span v-if="!person.is_active" class="inactive-badge">Inaktiv</span>
         </div>
         <div class="person-actions" @click.stop>
           <button
@@ -82,7 +83,7 @@ const deleting = ref(false)
 
 async function load() {
   try {
-    const res = await api.get('/persons')
+    const res = await api.get('/persons/all')
     persons.value = res.data.data
   } catch {
     toast.error('Fehler beim Laden')
@@ -136,8 +137,17 @@ async function doDelete() {
   &:hover { background: #f9fafb; }
 }
 
-.person-info { flex: 1; min-width: 0; }
+.person-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .person-name { font-weight: 600; font-size: 0.9rem; color: #111827; }
+
+.person-row--inactive { opacity: 0.55; }
+.person-row--inactive .person-name { color: #6b7280; }
+
+.inactive-badge {
+  display: inline-block; padding: 0.1rem 0.45rem;
+  background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db;
+  border-radius: 99px; font-size: 0.7rem; font-weight: 500;
+}
 
 .person-actions { display: flex; gap: 0.25rem; }
 

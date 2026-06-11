@@ -78,16 +78,29 @@
             </div>
           </div>
 
-          <!-- Besitzer -->
-          <div class="form-group">
-            <label>Besitzer</label>
-            <SearchableSelect
-              v-model="form.person_id"
-              :options="personOptions"
-              placeholder="Besitzer wählen…"
-              create-route="PersonCreate"
-              create-label="Neue Person anlegen"
-            />
+          <!-- Besitzer / Ausgeliehen an -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Besitzer</label>
+              <SearchableSelect
+                v-model="form.person_id"
+                :options="personOptions"
+                placeholder="Besitzer wählen…"
+                create-route="PersonCreate"
+                create-label="Neue Person anlegen"
+              />
+            </div>
+            <div class="form-group">
+              <label>Ausgeliehen an</label>
+              <SearchableSelect
+                v-model="form.loaned_to_person_id"
+                :options="personOptions"
+                placeholder="Person wählen…"
+                create-route="PersonCreate"
+                create-label="Neue Person anlegen"
+                return-field="loaned_to_person_id"
+              />
+            </div>
           </div>
 
           <!-- Marke / Modell -->
@@ -251,6 +264,7 @@ const form = ref({
   notes: '',
   category_id: '',
   person_id: '',
+  loaned_to_person_id: '',
   condition: '',
   brand: '',
   model: '',
@@ -289,6 +303,7 @@ onMounted(async () => {
         notes: item.notes ?? '',
         category_id: item.category_id ?? '',
         person_id: item.person_id ?? '',
+        loaned_to_person_id: item.loaned_to_person_id ?? '',
         condition: item.condition ?? '',
         brand: item.brand ?? '',
         model: item.model ?? '',
@@ -316,8 +331,13 @@ onMounted(async () => {
       form.value.category_id = Number(route.query.newCategoryId)
       router.replace({ query: { ...route.query, newCategoryId: undefined } })
     } else if (route.query.newPersonId) {
-      form.value.person_id = Number(route.query.newPersonId)
-      router.replace({ query: { ...route.query, newPersonId: undefined } })
+      if (route.query.returnField === 'loaned_to_person_id') {
+        form.value.loaned_to_person_id = Number(route.query.newPersonId)
+        router.replace({ query: { ...route.query, newPersonId: undefined, returnField: undefined } })
+      } else {
+        form.value.person_id = Number(route.query.newPersonId)
+        router.replace({ query: { ...route.query, newPersonId: undefined } })
+      }
     }
   } catch {
     toast.error('Fehler beim Laden')

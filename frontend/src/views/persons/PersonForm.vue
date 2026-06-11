@@ -14,6 +14,12 @@
             <label>Name *</label>
             <input v-model="form.name" type="text" required placeholder="z.B. Max Mustermann">
           </div>
+          <div class="form-group form-group--checkbox">
+            <label class="checkbox-label">
+              <input v-model="form.is_active" type="checkbox">
+              <span>Aktiv</span>
+            </label>
+          </div>
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" @click="$router.back()">Abbrechen</button>
             <button type="submit" class="btn btn-primary" :disabled="saving || !form.name">
@@ -62,14 +68,14 @@ const saving = ref(false)
 const deleting = ref(false)
 const loading = ref(!!id)
 const confirmDelete = ref(false)
-const form = ref({ name: '' })
+const form = ref({ name: '', is_active: true })
 
 onMounted(async () => {
   if (!id) return
   try {
     const res = await api.get(`/persons/${id}`)
     const data = res.data.data
-    form.value = { name: data.name }
+    form.value = { name: data.name, is_active: data.is_active !== false }
   } catch {
     toast.error('Person nicht gefunden')
     router.push({ name: 'PersonList' })
@@ -140,6 +146,13 @@ async function deletePerson() {
   font-size: 16px; background: white; font-family: inherit; box-sizing: border-box;
 }
 .form-group input:focus { outline: none; border-color: #3b82f6; }
+
+.form-group--checkbox { margin-bottom: 1rem; }
+.checkbox-label {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.875rem; color: #374151; cursor: pointer;
+  input[type="checkbox"] { width: auto; accent-color: #3b82f6; width: 16px; height: 16px; cursor: pointer; }
+}
 
 .form-actions {
   display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;

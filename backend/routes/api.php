@@ -87,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/images/{imageId}', [ImageController::class, 'destroy']);
     
     // Personen
+    Route::get('persons/all', [PersonController::class, 'all']);
     Route::apiResource('persons', PersonController::class);
 
     // Kategorien

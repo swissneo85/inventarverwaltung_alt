@@ -100,6 +100,10 @@ const props = defineProps({
   createLabel: {
     type: String,
     default: 'Neu anlegen'
+  },
+  returnField: {
+    type: String,
+    default: null
   }
 })
 
@@ -151,9 +155,12 @@ function selectFirst() {
 
 function navigateToCreate() {
   close()
+  const returnTo = props.returnField
+    ? route.fullPath + (route.fullPath.includes('?') ? '&' : '?') + 'returnField=' + props.returnField
+    : route.fullPath
   router.push({
     name: props.createRoute,
-    query: { returnTo: route.fullPath }
+    query: { returnTo }
   })
 }
 
