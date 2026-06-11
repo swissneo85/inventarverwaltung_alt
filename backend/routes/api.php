@@ -56,6 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('rooms', RoomController::class);
     Route::get('/rooms/{id}/items', [RoomController::class, 'items']);
     Route::get('/rooms/{id}/boxes', [RoomController::class, 'boxes']);
+    Route::get('/rooms/{id}/images', fn(Request $r, $id) => app(ImageController::class)->index('rooms', $id));
+    Route::post('/rooms/{id}/images', fn(Request $r, $id) => app(ImageController::class)->store($r, 'rooms', $id));
+    Route::post('/rooms/{id}/images/reorder', fn(Request $r, $id) => app(ImageController::class)->reorder($r, 'rooms', $id));
     
     // Boxen
     Route::apiResource('boxes', BoxController::class);

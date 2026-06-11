@@ -4,7 +4,7 @@
       <h1>Boxen</h1>
       <div class="header-actions">
         <router-link to="/inbox" class="btn-secondary">Inbox</router-link>
-        <router-link to="/boxes/create" class="btn-primary">
+        <router-link to="/boxes/new" class="btn-primary">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
@@ -84,6 +84,12 @@
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
               </svg>
             </router-link>
+            <button class="row-btn row-btn-danger" title="Löschen" @click="confirmDelete(box)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <path d="M10 11v6"></path><path d="M14 11v6"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -152,6 +158,12 @@
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </router-link>
+                  <button class="row-btn row-btn-danger" title="Löschen" @click="confirmDelete(box)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                      <path d="M10 11v6"></path><path d="M14 11v6"></path>
+                    </svg>
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -166,7 +178,20 @@
       </svg>
       <h3>Keine Boxen gefunden</h3>
       <p>Erstellen Sie Ihre erste Box</p>
-      <router-link to="/boxes/create" class="btn-primary">Neue Box</router-link>
+      <router-link to="/boxes/new" class="btn-primary">Neue Box</router-link>
+    </div>
+
+    <!-- Delete confirmation -->
+    <div v-if="deleteTarget" class="confirm-backdrop" @click.self="deleteTarget = null">
+      <div class="confirm-dialog">
+        <p>Box <strong>{{ deleteTarget.name }}</strong> wirklich löschen?</p>
+        <div class="confirm-actions">
+          <button class="btn btn-secondary" @click="deleteTarget = null">Abbrechen</button>
+          <button class="btn-danger" :disabled="deleting" @click="doDelete">
+            {{ deleting ? '…' : 'Löschen' }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -181,6 +206,8 @@ const toast = useToast()
 const boxes = ref([])
 const loading = ref(true)
 const search = ref('')
+const deleteTarget = ref(null)
+const deleting = ref(false)
 
 const viewMode = ref(localStorage.getItem('boxes-view-mode') || 'list')
 watch(viewMode, val => localStorage.setItem('boxes-view-mode', val))
@@ -199,6 +226,25 @@ async function fetchBoxes() {
     toast.error('Fehler beim Laden')
   } finally {
     loading.value = false
+  }
+}
+
+function confirmDelete(box) {
+  deleteTarget.value = box
+}
+
+async function doDelete() {
+  if (deleting.value || !deleteTarget.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/boxes/${deleteTarget.value.id}`)
+    toast.success('Box gelöscht')
+    boxes.value = boxes.value.filter(b => b.id !== deleteTarget.value.id)
+    deleteTarget.value = null
+  } catch {
+    // interceptor shows error
+  } finally {
+    deleting.value = false
   }
 }
 </script>
@@ -296,6 +342,30 @@ async function fetchBoxes() {
   border-radius: 6px; color: #9ca3af; text-decoration: none; transition: all 0.15s;
   &:hover { background: #eff6ff; color: #3b82f6; }
 }
+
+.row-btn-danger {
+  &:hover { background: #fee2e2 !important; color: #dc2626 !important; }
+}
+
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0.875rem; background: #fee2e2; color: #991b1b;
+  border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.875rem;
+  font-weight: 500; cursor: pointer; transition: background 0.15s;
+  &:hover:not(:disabled) { background: #fecaca; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.confirm-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog {
+  background: white; border-radius: 12px; padding: 1.5rem; margin: 1rem;
+  min-width: 280px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  p { margin: 0 0 1.25rem; font-size: 1rem; color: #111827; }
+}
+.confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
 
 /* States */
 .loading-state, .empty-state {

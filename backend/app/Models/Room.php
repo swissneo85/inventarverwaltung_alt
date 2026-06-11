@@ -32,6 +32,16 @@ class Room extends Model
         return 'R' . $this->id;
     }
 
+    public function images()
+    {
+        return $this->morphMany(\App\Models\ItemImage::class, 'imageable')->orderBy('sort_order');
+    }
+
+    public function coverImage()
+    {
+        return $this->morphOne(\App\Models\ItemImage::class, 'imageable')->orderBy('sort_order');
+    }
+
     /**
      * Items direkt in diesem Raum
      */

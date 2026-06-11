@@ -36,6 +36,23 @@
     <div v-if="id" class="card form-card" style="margin-top:1rem">
       <ImageGallery type="boxes" :model-id="id" />
     </div>
+
+    <div v-if="id" class="actions">
+      <button class="btn-danger" @click="confirmDelete = true">Löschen</button>
+    </div>
+
+    <!-- Delete confirmation -->
+    <div v-if="confirmDelete" class="confirm-backdrop" @click.self="confirmDelete = false">
+      <div class="confirm-dialog">
+        <p>Box <strong>{{ form.name }}</strong> wirklich löschen?</p>
+        <div class="confirm-actions">
+          <button class="btn btn-secondary" @click="confirmDelete = false">Abbrechen</button>
+          <button class="btn-danger" :disabled="deleting" @click="deleteBox">
+            {{ deleting ? '…' : 'Löschen' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -52,6 +69,8 @@ const toast = useToast()
 
 const id = route.params.id
 const saving = ref(false)
+const deleting = ref(false)
+const confirmDelete = ref(false)
 const rooms = ref([])
 const form = ref({
   name: '',
@@ -76,6 +95,21 @@ onMounted(async () => {
     }
   }
 })
+
+async function deleteBox() {
+  if (deleting.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/boxes/${id}`)
+    toast.success('Box gelöscht')
+    router.push({ name: 'Boxes' })
+  } catch {
+    // interceptor shows error
+  } finally {
+    deleting.value = false
+    confirmDelete.value = false
+  }
+}
 
 async function save() {
   if (!form.value.name || saving.value) return
@@ -164,6 +198,28 @@ async function save() {
   justify-content: flex-end;
   margin-top: 1.5rem;
 }
+
+.actions { margin-top: 1rem; }
+
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0.875rem; background: #fee2e2; color: #991b1b;
+  border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.875rem;
+  font-weight: 500; cursor: pointer; transition: background 0.15s;
+  &:hover:not(:disabled) { background: #fecaca; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.confirm-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog {
+  background: white; border-radius: 12px; padding: 1.5rem; margin: 1rem;
+  min-width: 280px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  p { margin: 0 0 1.25rem; font-size: 1rem; color: #111827; }
+}
+.confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
 
 @media (max-width: 767px) {
   .form-card { padding: 1rem; }

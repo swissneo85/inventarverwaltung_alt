@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Box;
 use App\Models\Item;
 use App\Models\ItemImage;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -85,11 +86,12 @@ class ImageController extends BaseApiController
         return $this->success($model->images()->get(), 'Reihenfolge aktualisiert');
     }
 
-    private function resolveModel(string $type, int|string $id): Item|Box|null
+    private function resolveModel(string $type, int|string $id): Item|Box|Room|null
     {
         return match ($type) {
             'items' => Item::find($id),
             'boxes' => Box::find($id),
+            'rooms' => Room::find($id),
             default => null,
         };
     }

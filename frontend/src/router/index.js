@@ -51,6 +51,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/rooms/:id/edit',
+    name: 'RoomEdit',
+    component: () => import('@/views/RoomForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/rooms/:id',
     name: 'RoomDetail',
     component: () => import('@/views/RoomDetail.vue'),

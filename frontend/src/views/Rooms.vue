@@ -2,7 +2,7 @@
   <div class="rooms-page">
     <div class="page-header">
       <h1>Räume</h1>
-      <button class="btn-primary" @click="showModal = true">
+      <button class="btn btn-primary" @click="$router.push({ name: 'RoomCreate' })">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
@@ -18,21 +18,21 @@
     <template v-else-if="rooms.length > 0">
       <!-- View Toggle -->
       <div class="view-toggle">
-        <button :class="['toggle-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'" title="Liste">
+        <button :class="['toggle-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line>
             <line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>
           </svg>
           Liste
         </button>
-        <button :class="['toggle-btn', { active: viewMode === 'gallery' }]" @click="viewMode = 'gallery'" title="Galerie">
+        <button :class="['toggle-btn', { active: viewMode === 'gallery' }]" @click="viewMode = 'gallery'">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>
           </svg>
           Galerie
         </button>
-        <button :class="['toggle-btn', { active: viewMode === 'table' }]" @click="viewMode = 'table'" title="Tabelle">
+        <button :class="['toggle-btn', { active: viewMode === 'table' }]" @click="viewMode = 'table'">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line>
@@ -44,13 +44,14 @@
       <!-- List View -->
       <div v-if="viewMode === 'list'" class="list-view">
         <div v-for="room in rooms" :key="room.id" class="list-card">
-          <div class="list-thumb">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <router-link :to="`/rooms/${room.id}`" class="list-thumb">
+            <img v-if="room.cover_image" :src="room.cover_image.url" :alt="room.name" class="thumb-img">
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             </svg>
-          </div>
+          </router-link>
           <div class="list-info">
-            <div class="list-name">{{ room.name }}</div>
+            <router-link :to="`/rooms/${room.id}`" class="list-name">{{ room.name }}</router-link>
             <div class="list-sub">{{ room.description || '' }}</div>
           </div>
           <div class="list-stats">
@@ -63,6 +64,18 @@
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
               </svg>
             </router-link>
+            <router-link :to="`/rooms/${room.id}/edit`" class="row-btn" title="Bearbeiten">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </router-link>
+            <button class="row-btn row-btn--danger" title="Löschen" @click="confirmDelete(room)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -70,10 +83,13 @@
       <!-- Gallery View -->
       <div v-else-if="viewMode === 'gallery'" class="gallery-view">
         <router-link v-for="room in rooms" :key="room.id" :to="`/rooms/${room.id}`" class="gallery-card">
-          <div class="gallery-placeholder room-placeholder">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            </svg>
+          <div class="gallery-img-wrap">
+            <img v-if="room.cover_image" :src="room.cover_image.url" :alt="room.name" class="gallery-img">
+            <div v-else class="gallery-placeholder room-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              </svg>
+            </div>
           </div>
           <div class="gallery-info">
             <div class="gallery-id">R{{ room.id }}</div>
@@ -92,15 +108,22 @@
           <table class="table">
             <thead>
               <tr>
+                <th style="width:56px"></th>
                 <th>Raum</th>
                 <th>Beschreibung</th>
                 <th>Items</th>
                 <th>Boxen</th>
-                <th style="width:60px"></th>
+                <th style="width:110px"></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="room in rooms" :key="room.id" class="table-row">
+                <td class="td-thumb">
+                  <div class="row-thumb">
+                    <img v-if="room.cover_image" :src="room.cover_image.url" :alt="room.name" class="row-thumb-img">
+                    <span v-else class="row-thumb-id">R{{ room.id }}</span>
+                  </div>
+                </td>
                 <td class="td-main">
                   <router-link :to="`/rooms/${room.id}`" class="row-name">{{ room.name }}</router-link>
                   <span class="row-id">R{{ room.id }}</span>
@@ -114,6 +137,18 @@
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </router-link>
+                  <router-link :to="`/rooms/${room.id}/edit`" class="row-btn" title="Bearbeiten">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </router-link>
+                  <button class="row-btn row-btn--danger" title="Löschen" @click="confirmDelete(room)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                    </svg>
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -128,32 +163,19 @@
       </svg>
       <h3>Keine Räume angelegt</h3>
       <p>Erstellen Sie Ihren ersten Raum</p>
-      <button class="btn-primary" @click="showModal = true">Raum erstellen</button>
+      <button class="btn btn-primary" @click="$router.push({ name: 'RoomCreate' })">Raum erstellen</button>
     </div>
 
-    <!-- Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal">
-        <div class="modal-header">
-          <h2>Neuer Raum</h2>
-          <button class="btn-close" @click="showModal = false">×</button>
+    <!-- Delete confirmation -->
+    <div v-if="deleteTarget" class="confirm-backdrop" @click.self="deleteTarget = null">
+      <div class="confirm-dialog">
+        <p>Raum <strong>{{ deleteTarget.name }}</strong> wirklich löschen?</p>
+        <div class="confirm-actions">
+          <button class="btn btn-secondary" @click="deleteTarget = null">Abbrechen</button>
+          <button class="btn-danger" :disabled="deleting" @click="deleteRoom">
+            {{ deleting ? '…' : 'Löschen' }}
+          </button>
         </div>
-        <form @submit.prevent="createRoom">
-          <div class="modal-body">
-            <div class="form-group">
-              <label>Name *</label>
-              <input v-model="newRoom.name" type="text" required placeholder="z.B. Keller, Garage">
-            </div>
-            <div class="form-group">
-              <label>Beschreibung</label>
-              <textarea v-model="newRoom.description" placeholder="Optional"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn-secondary" @click="showModal = false">Abbrechen</button>
-            <button type="submit" class="btn-primary" :disabled="saving">{{ saving ? 'Speichern...' : 'Erstellen' }}</button>
-          </div>
-        </form>
       </div>
     </div>
   </div>
@@ -161,15 +183,16 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 
 const toast = useToast()
+const router = useRouter()
 const rooms = ref([])
 const loading = ref(true)
-const showModal = ref(false)
-const saving = ref(false)
-const newRoom = ref({ name: '', description: '' })
+const deleteTarget = ref(null)
+const deleting = ref(false)
 
 const viewMode = ref(localStorage.getItem('rooms-view-mode') || 'list')
 watch(viewMode, val => localStorage.setItem('rooms-view-mode', val))
@@ -179,8 +202,8 @@ onMounted(fetchRooms)
 async function fetchRooms() {
   loading.value = true
   try {
-    const response = await api.get('/rooms')
-    rooms.value = response.data.data
+    const res = await api.get('/rooms')
+    rooms.value = res.data.data
   } catch {
     toast.error('Fehler beim Laden der Räume')
   } finally {
@@ -188,18 +211,22 @@ async function fetchRooms() {
   }
 }
 
-async function createRoom() {
-  saving.value = true
+function confirmDelete(room) {
+  deleteTarget.value = room
+}
+
+async function deleteRoom() {
+  if (!deleteTarget.value || deleting.value) return
+  deleting.value = true
   try {
-    await api.post('/rooms', newRoom.value)
-    toast.success('Raum erstellt')
-    showModal.value = false
-    newRoom.value = { name: '', description: '' }
-    fetchRooms()
+    await api.delete(`/rooms/${deleteTarget.value.id}`)
+    toast.success('Raum gelöscht')
+    rooms.value = rooms.value.filter(r => r.id !== deleteTarget.value.id)
+    deleteTarget.value = null
   } catch {
-    toast.error('Fehler beim Erstellen')
+    // API interceptor shows error toast
   } finally {
-    saving.value = false
+    deleting.value = false
   }
 }
 </script>
@@ -224,43 +251,42 @@ async function createRoom() {
 /* List */
 .list-view { display: flex; flex-direction: column; gap: 0.75rem; }
 .list-card {
-  display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1rem;
+  display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem;
   background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   transition: box-shadow 0.2s;
   &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 }
 .list-thumb {
   width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px;
-  background: #fef3c7; color: #92400e; display: flex; align-items: center; justify-content: center;
+  background: #fef9ec; color: #d97706; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; text-decoration: none;
 }
+.thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .list-info { flex: 1; min-width: 0; }
-.list-name { font-weight: 600; font-size: 0.9rem; color: #111827; }
+.list-name {
+  font-weight: 600; font-size: 0.9rem; color: #111827; text-decoration: none; display: block;
+  &:hover { color: #3b82f6; }
+}
 .list-sub { font-size: 0.8rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list-stats { display: flex; gap: 0.5rem; }
-.stat-chip {
-  font-size: 0.75rem; padding: 0.2rem 0.6rem; background: #f3f4f6;
-  color: #6b7280; border-radius: 99px; white-space: nowrap;
-}
+.stat-chip { font-size: 0.75rem; padding: 0.2rem 0.6rem; background: #f3f4f6; color: #6b7280; border-radius: 99px; white-space: nowrap; }
 .list-actions { display: flex; gap: 0.25rem; }
 
 /* Gallery */
-.gallery-view {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem;
-}
+.gallery-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
 .gallery-card {
   background: white; border-radius: 12px; overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-decoration: none; color: inherit;
-  transition: box-shadow 0.2s, transform 0.2s;
-  display: flex; flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s; display: flex; flex-direction: column;
   &:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.12); transform: translateY(-2px); }
 }
-.gallery-placeholder {
-  width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-}
+.gallery-img-wrap { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f3f4f6; }
+.gallery-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-placeholder { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
 .room-placeholder { background: #fef9ec; color: #d97706; }
 .gallery-info { padding: 0.75rem; }
 .gallery-id { font-size: 0.7rem; font-weight: 600; color: #d97706; }
-.gallery-name { font-size: 0.875rem; font-weight: 600; color: #111827; margin: 0.1rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gallery-name { font-size: 0.875rem; font-weight: 600; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0.1rem 0; }
 .gallery-stats { display: flex; gap: 0.5rem; font-size: 0.72rem; color: #9ca3af; margin-top: 0.25rem; }
 
 /* Table */
@@ -273,7 +299,14 @@ async function createRoom() {
   td { padding: 0.75rem 1rem; vertical-align: middle; border-bottom: 1px solid #f3f4f6; }
   .table-row { transition: background 0.12s; &:last-child td { border-bottom: none; } &:hover { background: #f9fafb; } }
 }
-.td-main { display: flex; flex-direction: column; gap: 0.1rem; }
+.td-thumb { padding: 0.5rem 0.5rem 0.5rem 1rem; }
+.row-thumb {
+  width: 40px; height: 40px; border-radius: 8px; overflow: hidden;
+  background: #fef9ec; display: flex; align-items: center; justify-content: center;
+}
+.row-thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.row-thumb-id { font-size: 0.65rem; font-weight: 700; color: #d97706; }
+.td-main { display: flex; flex-direction: column; gap: 0.1rem; min-width: 140px; }
 .row-name { font-weight: 600; color: #111827; text-decoration: none; &:hover { color: #3b82f6; } }
 .row-id { font-size: 0.7rem; color: #9ca3af; }
 .chip { display: inline-block; padding: 0.2rem 0.6rem; background: #f3f4f6; color: #374151; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
@@ -281,8 +314,10 @@ async function createRoom() {
 .td-actions { display: flex; gap: 0.25rem; align-items: center; }
 .row-btn {
   display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
-  border-radius: 6px; color: #9ca3af; text-decoration: none; transition: all 0.15s;
+  border-radius: 6px; color: #9ca3af; text-decoration: none; background: none; border: none;
+  cursor: pointer; transition: all 0.15s;
   &:hover { background: #eff6ff; color: #3b82f6; }
+  &.row-btn--danger:hover { background: #fee2e2; color: #dc2626; }
 }
 
 /* States */
@@ -298,22 +333,26 @@ async function createRoom() {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Modal */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center; z-index: 1000;
+/* Confirm */
+.confirm-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
 }
-.modal { background: white; border-radius: 12px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
-.modal-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem 1.25rem; border-bottom: 1px solid #e5e7eb;
-  h2 { font-size: 1.125rem; font-weight: 600; margin: 0; }
+.confirm-dialog {
+  background: white; border-radius: 12px; padding: 1.5rem; margin: 1rem;
+  min-width: 280px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  p { margin: 0 0 1.25rem; font-size: 1rem; color: #111827; }
 }
-.btn-close {
-  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-  background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer;
-  &:hover { color: #1f2937; }
+.confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
+.btn-danger {
+  padding: 0.5rem 1rem; background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
+  border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  &:hover:not(:disabled) { background: #fecaca; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
-.modal-body { padding: 1.25rem; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.25rem; border-top: 1px solid #e5e7eb; }
+
+@media (max-width: 767px) {
+  .list-stats { display: none; }
+  .gallery-view { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
 </style>

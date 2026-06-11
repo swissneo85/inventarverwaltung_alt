@@ -14,7 +14,7 @@ class RoomController extends BaseApiController
      */
     public function index(Request $request)
     {
-        $query = Room::withCount(['items', 'boxes']);
+        $query = Room::with(['coverImage'])->withCount(['items', 'boxes']);
         
         if ($request->has('active')) {
             $query->where('active', $request->boolean('active'));
