@@ -59,8 +59,8 @@
         <ImageGallery type="items" :model-id="id" />
       </div>
 
-      <div class="actions">
-        <button class="btn btn-danger" @click="confirmDelete = true">Löschen</button>
+      <div class="danger-zone">
+        <button class="btn-delete" @click="confirmDelete = true">🗑 Gegenstand löschen</button>
       </div>
     </div>
 
@@ -196,9 +196,19 @@ onMounted(loadItem)
 .cond-broken  { background: #fee2e2; color: #991b1b; }
 .cond-default { background: #f3f4f6; color: #6b7280; }
 
-.actions { display: flex; gap: 1rem; margin-top: 1rem; }
-
 .loading { padding: 2rem; text-align: center; color: #6b7280; }
+
+.danger-zone {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #fee2e2;
+}
+.btn-delete {
+  width: 100%; padding: 0.75rem; background: none;
+  border: 1px solid #ef4444; color: #ef4444;
+  border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.15s;
+}
+.btn-delete:hover { background: #fef2f2; }
 
 .btn-danger {
   display: flex; align-items: center; justify-content: center; gap: 0.4rem;
