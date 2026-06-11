@@ -316,6 +316,15 @@ onMounted(async () => {
         purchased_at: item.purchased_at ? item.purchased_at.substring(0, 10) : '',
         warranty_until: item.warranty_until ? item.warranty_until.substring(0, 10) : '',
       }
+
+      // Ensure assigned persons (possibly inactive) appear in the dropdown
+      const knownIds = new Set(persons.value.map(p => p.id))
+      for (const rel of [item.person, item.loaned_to_person]) {
+        if (rel && !knownIds.has(rel.id)) {
+          persons.value.push(rel)
+          knownIds.add(rel.id)
+        }
+      }
     }
 
     // Pre-select newly created room, box or category when returning from create flow

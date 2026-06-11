@@ -25,7 +25,7 @@
         <div class="detail-row"><span>Besitzer</span><span>{{ item.person?.name || '–' }}</span></div>
         <div v-if="item.loaned_to_person" class="detail-row">
           <span>Ausgeliehen an</span>
-          <span class="loaned-badge">{{ item.loaned_to_person.name }}</span>
+          <span>{{ item.loaned_to_person.name }}</span>
         </div>
         <div class="detail-row"><span>Zustand</span>
           <span v-if="item.condition" :class="['condition-badge', conditionClass(item.condition)]">{{ item.condition }}</span>
@@ -169,12 +169,6 @@ onMounted(loadItem)
 .cond-used    { background: #fef3c7; color: #92400e; }
 .cond-broken  { background: #fee2e2; color: #991b1b; }
 .cond-default { background: #f3f4f6; color: #6b7280; }
-
-.loaned-badge {
-  display: inline-block; padding: 0.15rem 0.5rem;
-  background: #fef3c7; color: #92400e; border-radius: 99px;
-  font-size: 0.8rem; font-weight: 500;
-}
 
 .loading { padding: 2rem; text-align: center; color: #6b7280; }
 
