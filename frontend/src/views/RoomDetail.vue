@@ -11,6 +11,11 @@
     <div v-if="loading" class="loading">Wird geladen...</div>
 
     <template v-else-if="room">
+      <!-- Images first -->
+      <div class="card detail-card" v-if="imageCount !== 0">
+        <ImageGallery type="rooms" :model-id="room.id" :readonly="true" @loaded="n => imageCount = n" />
+      </div>
+
       <!-- Details -->
       <div class="card detail-card">
         <h2>Details</h2>
@@ -24,12 +29,6 @@
         <div class="detail-row">
           <span>Items (direkt)</span><span>{{ room.items_count ?? items.length }}</span>
         </div>
-      </div>
-
-      <!-- Images -->
-      <div class="card detail-card">
-        <h2>Bilder</h2>
-        <ImageGallery type="rooms" :model-id="room.id" />
       </div>
 
       <!-- Boxes -->
@@ -80,6 +79,7 @@ const room = ref(null)
 const boxes = ref([])
 const items = ref([])
 const loading = ref(true)
+const imageCount = ref(null)
 
 onMounted(async () => {
   const id = route.params.id

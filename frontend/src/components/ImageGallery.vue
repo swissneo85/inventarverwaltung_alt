@@ -1,8 +1,8 @@
 <template>
-  <div class="image-gallery">
+  <div class="image-gallery" v-if="!props.readonly || images.length > 0">
     <div class="gallery-header">
       <h3>Bilder</h3>
-      <div class="upload-buttons">
+      <div v-if="!props.readonly" class="upload-buttons">
         <label class="btn btn-secondary btn-sm" title="Kamera">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
             <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4z"/>
@@ -22,7 +22,9 @@
       </div>
     </div>
 
+    <!-- Edit mode: drop zone with full controls -->
     <div
+      v-if="!props.readonly"
       class="drop-zone"
       :class="{ 'drag-over': isDragging }"
       @dragover.prevent="isDragging = true"
@@ -32,7 +34,6 @@
       <div v-if="images.length === 0" class="empty-state">
         Bilder hier ablegen oder Schaltflächen oben verwenden
       </div>
-
       <div v-else class="image-grid">
         <div
           v-for="(image, index) in images"
@@ -43,25 +44,24 @@
           <img :src="image.url" :alt="image.filename" @click="openLightbox(index)">
           <div v-if="index === 0" class="cover-badge">Titelbild</div>
           <div class="image-actions">
-            <button
-              v-if="index > 0"
-              class="action-btn"
-              title="Nach links"
-              @click="moveImage(index, -1)"
-            >&#8592;</button>
-            <button
-              v-if="index < images.length - 1"
-              class="action-btn"
-              title="Nach rechts"
-              @click="moveImage(index, 1)"
-            >&#8594;</button>
-            <button
-              class="action-btn action-btn--delete"
-              title="Löschen"
-              @click="confirmDelete(image)"
-            >&#10005;</button>
+            <button v-if="index > 0" class="action-btn" title="Nach links" @click="moveImage(index, -1)">&#8592;</button>
+            <button v-if="index < images.length - 1" class="action-btn" title="Nach rechts" @click="moveImage(index, 1)">&#8594;</button>
+            <button class="action-btn action-btn--delete" title="Löschen" @click="confirmDelete(image)">&#10005;</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Readonly mode: plain image grid, no controls -->
+    <div v-else class="image-grid image-grid--readonly">
+      <div
+        v-for="(image, index) in images"
+        :key="image.id"
+        class="image-item"
+        :class="{ 'is-cover': index === 0 }"
+      >
+        <img :src="image.url" :alt="image.filename" @click="openLightbox(index)">
+        <div v-if="index === 0" class="cover-badge">Titelbild</div>
       </div>
     </div>
 
@@ -96,8 +96,11 @@ import { useToast } from 'vue-toastification'
 
 const props = defineProps({
   type: { type: String, required: true },
-  modelId: { type: [String, Number], required: true }
+  modelId: { type: [String, Number], required: true },
+  readonly: { type: Boolean, default: false }
 })
+
+const emit = defineEmits(['loaded'])
 
 const toast = useToast()
 const images = ref([])
@@ -111,7 +114,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'ima
 const MAX_SIZE = 15 * 1024 * 1024
 const TARGET_MAX_DIM = 1920
 const TARGET_QUALITY = 0.82
-const COMPRESS_THRESHOLD = 500 * 1024 // compress if > 500 KB
+const COMPRESS_THRESHOLD = 500 * 1024
 
 async function compressImage(file) {
   if (file.size <= COMPRESS_THRESHOLD) return file
@@ -155,6 +158,8 @@ async function fetchImages() {
     images.value = res.data.data
   } catch (e) {
     toast.error('Bilder konnten nicht geladen werden')
+  } finally {
+    emit('loaded', images.value.length)
   }
 }
 
@@ -262,6 +267,7 @@ onMounted(fetchImages)
 .empty-state { color: #9ca3af; text-align: center; padding: 2rem 1rem; }
 
 .image-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.image-grid--readonly { margin-top: 0; }
 
 .image-item {
   position: relative;

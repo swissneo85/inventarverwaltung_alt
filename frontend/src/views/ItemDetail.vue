@@ -14,6 +14,11 @@
     <div v-if="loading" class="loading">Wird geladen...</div>
 
     <div v-else-if="item">
+      <!-- Images first -->
+      <div class="card detail-card" v-if="imageCount !== 0">
+        <ImageGallery type="items" :model-id="id" :readonly="true" @loaded="n => imageCount = n" />
+      </div>
+
       <div class="card detail-card">
         <h2>Allgemein</h2>
         <div class="detail-row"><span>Kategorie</span><span>{{ item.category?.name || '–' }}</span></div>
@@ -55,9 +60,6 @@
         </div>
       </div>
 
-      <div class="card detail-card">
-        <ImageGallery type="items" :model-id="id" />
-      </div>
     </div>
   </div>
 </template>
@@ -76,6 +78,7 @@ const toast = useToast()
 const id = route.params.id
 const item = ref(null)
 const loading = ref(true)
+const imageCount = ref(null)
 
 const locationText = computed(() => {
   if (!item.value) return '–'

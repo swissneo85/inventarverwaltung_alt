@@ -11,6 +11,11 @@
     <div v-if="loading" class="loading">Wird geladen...</div>
 
     <template v-else-if="box">
+      <!-- Images first -->
+      <div class="card detail-card" v-if="imageCount !== 0">
+        <ImageGallery type="boxes" :model-id="box.id" :readonly="true" @loaded="n => imageCount = n" />
+      </div>
+
       <!-- Details -->
       <div class="card detail-card">
         <h2>Details</h2>
@@ -23,12 +28,6 @@
         <div class="detail-row">
           <span>Items</span><span>{{ box.items_count ?? items.length }}</span>
         </div>
-      </div>
-
-      <!-- Images -->
-      <div class="card detail-card">
-        <h2>Bilder</h2>
-        <ImageGallery type="boxes" :model-id="box.id" />
       </div>
 
       <!-- Items -->
@@ -63,6 +62,7 @@ const toast = useToast()
 const box = ref(null)
 const items = ref([])
 const loading = ref(true)
+const imageCount = ref(null)
 
 onMounted(async () => {
   const id = route.params.id
