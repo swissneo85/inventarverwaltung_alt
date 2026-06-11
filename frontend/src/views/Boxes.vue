@@ -58,7 +58,7 @@
 
       <!-- List View -->
       <div v-if="viewMode === 'list'" class="list-view">
-        <div v-for="box in boxes" :key="box.id" class="list-card">
+        <div v-for="box in boxes" :key="box.id" class="list-card" @click="$router.push(`/boxes/${box.id}`)" style="cursor:pointer">
           <div class="list-thumb">
             <img v-if="box.cover_image" :src="box.cover_image.url" :alt="box.name" class="thumb-img">
             <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -72,7 +72,7 @@
           <div class="list-stats">
             <span class="stat-chip">{{ box.items_count || 0 }} Items</span>
           </div>
-          <div class="list-actions">
+          <div class="list-actions" @click.stop>
             <router-link :to="`/boxes/${box.id}`" class="row-btn" title="Ansehen">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
