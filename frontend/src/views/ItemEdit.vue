@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <div class="page-header">
-      <button class="btn btn-secondary btn-back" @click="id ? $router.push({ name: 'ItemDetail', params: { id } }) : $router.push({ name: 'Items' })">← Zurück</button>
+      <button class="btn btn-secondary btn-back" @click="cancel">← Zurück</button>
       <h1>{{ id ? 'Gegenstand bearbeiten' : 'Neuer Gegenstand' }}</h1>
     </div>
 
@@ -195,7 +195,7 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn btn-secondary" @click="() => { sessionStorage.removeItem(FORM_DRAFT_KEY); id ? $router.push({ name: 'ItemDetail', params: { id } }) : $router.push({ name: 'Items' }) }">Abbrechen</button>
+            <button type="button" class="btn btn-secondary" @click="cancel">Abbrechen</button>
             <button type="submit" class="btn btn-primary" :disabled="saving || !form.name">
               {{ saving ? 'Wird gespeichert...' : (id ? 'Speichern' : 'Erstellen') }}
             </button>
@@ -261,6 +261,15 @@ const FORM_DRAFT_KEY = 'item_form_draft'
 function saveFormDraft() {
   if (!id) {
     sessionStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form.value))
+  }
+}
+
+function cancel() {
+  sessionStorage.removeItem(FORM_DRAFT_KEY)
+  if (id) {
+    router.push({ name: 'ItemDetail', params: { id } })
+  } else {
+    router.push({ name: 'Items' })
   }
 }
 const rooms = ref([])
