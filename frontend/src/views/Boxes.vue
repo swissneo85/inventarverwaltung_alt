@@ -3,8 +3,8 @@
     <div class="page-header">
       <h1>Boxen</h1>
       <div class="header-actions">
-        <router-link to="/inbox" class="btn-secondary">Inbox</router-link>
-        <router-link to="/boxes/new" class="btn-primary">
+        <router-link to="/inbox" class="btn btn-secondary">Inbox</router-link>
+        <router-link to="/boxes/new" class="btn btn-primary">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
@@ -258,7 +258,7 @@ async function doDelete() {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
   h1 { font-size: 1.5rem; font-weight: 600; margin: 0; }
 }
-.header-actions { display: flex; gap: 0.75rem; align-items: center; }
+.header-actions { display: flex; gap: 0.75rem; align-items: center; flex-shrink: 0; }
 
 .filters-card { padding: 1rem; margin-bottom: 1.5rem; }
 .filters-row { display: flex; gap: 1rem; }
