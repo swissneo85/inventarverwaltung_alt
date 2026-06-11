@@ -77,6 +77,7 @@ echo "   ✅ .env konfiguriert"
 # Laravel Config Cache leeren (damit .env neu gelesen wird)
 cd /var/www/html
 php artisan config:clear 2>/dev/null || true
+php artisan clear-compiled 2>/dev/null || true
 
 # Create SQLite DB if missing
 DB_FILE="/app/data/database.sqlite"

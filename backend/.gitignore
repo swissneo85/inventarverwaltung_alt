@@ -4,6 +4,7 @@
 /public/storage
 /storage/*.key
 /vendor
+/bootstrap/cache/*.php
 /database/*.sqlite
 .env
 .env.backup
