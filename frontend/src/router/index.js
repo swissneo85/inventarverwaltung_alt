@@ -45,6 +45,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/rooms/new',
+    name: 'RoomCreate',
+    component: () => import('@/views/RoomForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/rooms/:id',
     name: 'RoomDetail',
     component: () => import('@/views/RoomDetail.vue'),
@@ -54,6 +60,18 @@ const routes = [
     path: '/boxes',
     name: 'Boxes',
     component: () => import('@/views/Boxes.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/boxes/new',
+    name: 'BoxCreate',
+    component: () => import('@/views/BoxEdit.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/boxes/:id/edit',
+    name: 'BoxEdit',
+    component: () => import('@/views/BoxEdit.vue'),
     meta: { requiresAuth: true }
   },
   {

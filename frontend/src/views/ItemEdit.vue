@@ -109,17 +109,25 @@
           <div class="form-row">
             <div class="form-group">
               <label>Raum</label>
-              <select v-model="form.room_id" @change="form.box_id = ''">
-                <option value="">–</option>
-                <option v-for="r in rooms" :key="r.id" :value="r.id">{{ r.name }}</option>
-              </select>
+              <SearchableSelect
+                :model-value="form.room_id"
+                @update:model-value="val => { form.room_id = val; if (val) form.box_id = '' }"
+                :options="roomOptions"
+                placeholder="Raum wählen..."
+                create-route="RoomCreate"
+                create-label="Neuen Raum anlegen"
+              />
             </div>
             <div class="form-group">
               <label>Box</label>
-              <select v-model="form.box_id" @change="form.room_id = ''">
-                <option value="">–</option>
-                <option v-for="b in boxes" :key="b.id" :value="b.id">{{ b.name }}</option>
-              </select>
+              <SearchableSelect
+                :model-value="form.box_id"
+                @update:model-value="val => { form.box_id = val; if (val) form.room_id = '' }"
+                :options="boxOptions"
+                placeholder="Box wählen..."
+                create-route="BoxCreate"
+                create-label="Neue Box anlegen"
+              />
             </div>
           </div>
 
@@ -166,11 +174,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import ImageGallery from '@/components/ImageGallery.vue'
+import SearchableSelect from '@/components/SearchableSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -183,6 +192,14 @@ const categories = ref([])
 const rooms = ref([])
 const boxes = ref([])
 const pendingFiles = ref([])
+
+const roomOptions = computed(() =>
+  rooms.value.map(r => ({ value: r.id, label: r.name }))
+)
+
+const boxOptions = computed(() =>
+  boxes.value.map(b => ({ value: b.id, label: b.name }))
+)
 
 const form = ref({
   name: '',
@@ -236,6 +253,17 @@ onMounted(async () => {
         purchased_at: item.purchased_at ? item.purchased_at.substring(0, 10) : '',
         warranty_until: item.warranty_until ? item.warranty_until.substring(0, 10) : '',
       }
+    }
+
+    // Pre-select newly created room or box when returning from create flow
+    if (route.query.newRoomId) {
+      form.value.room_id = Number(route.query.newRoomId)
+      form.value.box_id = ''
+      router.replace({ query: { ...route.query, newRoomId: undefined } })
+    } else if (route.query.newBoxId) {
+      form.value.box_id = Number(route.query.newBoxId)
+      form.value.room_id = ''
+      router.replace({ query: { ...route.query, newBoxId: undefined } })
     }
   } catch {
     toast.error('Fehler beim Laden')
