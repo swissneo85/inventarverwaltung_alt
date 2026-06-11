@@ -43,22 +43,22 @@
 
       <!-- List View -->
       <div v-if="viewMode === 'list'" class="list-view">
-        <div v-for="room in rooms" :key="room.id" class="list-card">
-          <router-link :to="`/rooms/${room.id}`" class="list-thumb">
+        <div v-for="room in rooms" :key="room.id" class="list-card" @click="$router.push(`/rooms/${room.id}`)" style="cursor:pointer">
+          <router-link :to="`/rooms/${room.id}`" class="list-thumb" @click.stop>
             <img v-if="room.cover_image" :src="room.cover_image.url" :alt="room.name" class="thumb-img">
             <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             </svg>
           </router-link>
           <div class="list-info">
-            <router-link :to="`/rooms/${room.id}`" class="list-name">{{ room.name }}</router-link>
+            <router-link :to="`/rooms/${room.id}`" class="list-name" @click.stop>{{ room.name }}</router-link>
             <div class="list-sub">{{ room.description || '' }}</div>
           </div>
           <div class="list-stats">
             <span class="stat-chip">{{ room.items_count || 0 }} Items</span>
             <span class="stat-chip">{{ room.boxes_count || 0 }} Boxen</span>
           </div>
-          <div class="list-actions">
+          <div class="list-actions" @click.stop>
             <router-link :to="`/rooms/${room.id}`" class="row-btn" title="Ansehen">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>

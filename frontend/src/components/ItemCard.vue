@@ -1,5 +1,5 @@
 <template>
-  <div class="item-card">
+  <div class="item-card" @click="router.push(`/items/${item.id}`)" style="cursor:pointer">
     <div class="item-main">
       <div class="item-thumb">
         <img v-if="item.cover_image" :src="item.cover_image.url" :alt="item.name" class="thumb-img">
@@ -20,7 +20,7 @@
       </div>
     </div>
     
-    <div class="item-actions">
+    <div class="item-actions" @click.stop>
       <router-link :to="`/items/${item.id}`" class="btn-icon" title="Details">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -39,6 +39,9 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
   item: {
