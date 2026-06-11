@@ -107,7 +107,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'before-navigate'])
 const router = useRouter()
 const route = useRoute()
 
@@ -155,6 +155,7 @@ function selectFirst() {
 
 function navigateToCreate() {
   close()
+  emit('before-navigate')
   const returnTo = props.returnField
     ? route.fullPath + (route.fullPath.includes('?') ? '&' : '?') + 'returnField=' + props.returnField
     : route.fullPath

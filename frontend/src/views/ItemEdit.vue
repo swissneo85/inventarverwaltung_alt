@@ -64,6 +64,7 @@
                 placeholder="Kategorie wählen…"
                 create-route="CategoryCreate"
                 create-label="Neue Kategorie anlegen"
+                @before-navigate="saveFormDraft"
               />
             </div>
             <div class="form-group">
@@ -88,6 +89,7 @@
                 placeholder="Besitzer wählen…"
                 create-route="PersonCreate"
                 create-label="Neue Person anlegen"
+                @before-navigate="saveFormDraft"
               />
             </div>
             <div class="form-group">
@@ -99,6 +101,7 @@
                 create-route="PersonCreate"
                 create-label="Neue Person anlegen"
                 return-field="loaned_to_person_id"
+                @before-navigate="saveFormDraft"
               />
             </div>
           </div>
@@ -144,6 +147,7 @@
                 placeholder="Raum wählen..."
                 create-route="RoomCreate"
                 create-label="Neuen Raum anlegen"
+                @before-navigate="saveFormDraft"
               />
             </div>
             <div class="form-group">
@@ -155,6 +159,7 @@
                 placeholder="Box wählen..."
                 create-route="BoxCreate"
                 create-label="Neue Box anlegen"
+                @before-navigate="saveFormDraft"
               />
             </div>
           </div>
@@ -190,7 +195,7 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn btn-secondary" @click="$router.back()">Abbrechen</button>
+            <button type="button" class="btn btn-secondary" @click="() => { sessionStorage.removeItem(FORM_DRAFT_KEY); $router.back() }">Abbrechen</button>
             <button type="submit" class="btn btn-primary" :disabled="saving || !form.name">
               {{ saving ? 'Wird gespeichert...' : (id ? 'Speichern' : 'Erstellen') }}
             </button>
@@ -250,6 +255,14 @@ const deleting = ref(false)
 const confirmDelete = ref(false)
 const documents = ref([])
 const categories = ref([])
+
+const FORM_DRAFT_KEY = 'item_form_draft'
+
+function saveFormDraft() {
+  if (!id) {
+    sessionStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form.value))
+  }
+}
 const rooms = ref([])
 const boxes = ref([])
 const persons = ref([])
@@ -339,7 +352,6 @@ onMounted(async () => {
         purchased_at: item.purchased_at ? item.purchased_at.substring(0, 10) : '',
         warranty_until: item.warranty_until ? item.warranty_until.substring(0, 10) : '',
       }
-
       // Ensure assigned persons (possibly inactive) appear in the dropdown
       const knownIds = new Set(persons.value.map(p => p.id))
       for (const rel of [item.person, item.loaned_to_person]) {
@@ -348,9 +360,17 @@ onMounted(async () => {
           knownIds.add(rel.id)
         }
       }
+      await loadDocuments()
+    } else {
+      // Neu-Erstellen: Draft aus sessionStorage wiederherstellen
+      const raw = sessionStorage.getItem(FORM_DRAFT_KEY)
+      if (raw) {
+        try { form.value = { ...form.value, ...JSON.parse(raw) } } catch {}
+        sessionStorage.removeItem(FORM_DRAFT_KEY)
+      }
     }
 
-    // Pre-select newly created room, box or category when returning from create flow
+    // Neu angelegte Entität aus Return-Flow vorauswählen
     if (route.query.newRoomId) {
       form.value.room_id = Number(route.query.newRoomId)
       form.value.box_id = ''
@@ -371,7 +391,6 @@ onMounted(async () => {
         router.replace({ query: { ...route.query, newPersonId: undefined } })
       }
     }
-    if (id) await loadDocuments()
   } catch {
     toast.error('Fehler beim Laden')
     router.push({ name: 'Items' })
@@ -443,6 +462,7 @@ async function save() {
   if (!form.value.name || saving.value) return
   saving.value = true
   try {
+    sessionStorage.removeItem(FORM_DRAFT_KEY)
     if (id) {
       await api.put(`/items/${id}`, form.value)
       toast.success('Gespeichert')
@@ -461,7 +481,8 @@ async function save() {
         }
       }
       toast.success('Erstellt')
-      router.push({ name: 'ItemDetail', params: { id: newId } })
+      // Edit-Modus öffnen damit Dokumente sofort hochgeladen werden können
+      router.push({ name: 'ItemEdit', params: { id: newId } })
     }
   } catch {
     toast.error('Fehler beim Speichern')

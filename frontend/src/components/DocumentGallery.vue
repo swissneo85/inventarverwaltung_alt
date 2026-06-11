@@ -23,7 +23,7 @@
     <!-- Upload -->
     <div v-if="!readonly" class="document-upload">
       <div class="upload-row">
-        <select v-model="newType" class="doc-type-select">
+        <select v-model="newType" class="doc-type-select" @change="triggerUploadIfReady">
           <option value="">Typ wählen…</option>
           <option value="quittung">Quittung</option>
           <option value="anleitung">Bedienungsanleitung</option>
@@ -31,20 +31,24 @@
           <option value="foto">Foto (Typenschild/SN)</option>
           <option value="sonstiges">Sonstiges</option>
         </select>
-        <label class="btn-doc-upload-label">
+        <label class="btn-doc-upload-label" :class="{ disabled: uploading }">
           📎 Dokument hinzufügen
-          <input ref="fileInput" type="file" accept=".pdf,image/*" style="display:none" @change="onFileChange">
+          <input ref="fileInput" type="file" accept=".pdf,image/*" style="display:none" :disabled="uploading" @change="onFileChange">
         </label>
       </div>
 
-      <div v-if="pendingFile" class="pending-row">
+      <!-- Pending: Datei gewählt, warte auf Typ -->
+      <div v-if="pendingFile && !uploading" class="pending-row">
         <span class="pending-name">{{ pendingFile.name }}</span>
-        <button class="btn-upload-confirm" :disabled="!newType || uploading" @click="upload">
-          {{ uploading ? 'Lädt…' : 'Hochladen' }}
-        </button>
-        <button class="btn-upload-cancel" @click="cancel">Abbrechen</button>
+        <span v-if="!newType" class="pending-hint-inline">← Bitte Typ wählen</span>
+        <button class="btn-pending-cancel" @click="cancel">✕</button>
       </div>
-      <p v-if="pendingFile && !newType" class="upload-hint">Bitte zuerst einen Typ wählen</p>
+
+      <!-- Uploading Indicator -->
+      <div v-if="uploading" class="pending-row">
+        <span class="upload-spinner"></span>
+        <span class="pending-name uploading-name">{{ pendingFile?.name }}</span>
+      </div>
     </div>
 
   </div>
@@ -87,28 +91,37 @@ function mimeIcon(mime) {
 }
 
 function onFileChange(e) {
-  pendingFile.value = e.target.files[0] || null
+  const file = e.target.files[0] || null
   e.target.value = ''
+  if (!file) return
+  pendingFile.value = file
+  triggerUploadIfReady()
+}
+
+function triggerUploadIfReady() {
+  if (pendingFile.value && newType.value) {
+    upload()
+  }
 }
 
 function cancel() {
   pendingFile.value = null
-  newType.value = ''
 }
 
 async function upload() {
   if (!pendingFile.value || !newType.value || uploading.value) return
   uploading.value = true
+  const fileToUpload = pendingFile.value
   try {
     const fd = new FormData()
-    fd.append('file', pendingFile.value)
+    fd.append('file', fileToUpload)
     fd.append('type', newType.value)
     await api.post(`/items/${props.itemId}/documents`, fd)
     pendingFile.value = null
-    newType.value = ''
     emit('update')
   } catch {
     toast.error('Upload fehlgeschlagen')
+    pendingFile.value = null
   } finally {
     uploading.value = false
   }
@@ -180,31 +193,38 @@ async function deleteDoc(doc) {
   font-size: 0.875rem; color: #6b7280; cursor: pointer;
   background: white; transition: border-color 0.12s, color 0.12s;
 }
-.btn-doc-upload-label:hover { border-color: #3b82f6; color: #3b82f6; }
+.btn-doc-upload-label:hover:not(.disabled) { border-color: #3b82f6; color: #3b82f6; }
+.btn-doc-upload-label.disabled { opacity: 0.5; cursor: not-allowed; }
 
 .pending-row {
   display: flex; align-items: center; gap: 0.5rem;
   margin-top: 0.5rem; flex-wrap: wrap;
 }
-.pending-name { font-size: 0.875rem; color: #374151; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.btn-upload-confirm {
-  padding: 0.375rem 0.875rem;
-  background: #3b82f6; color: white;
-  border: none; border-radius: 8px;
-  font-size: 0.875rem; cursor: pointer; transition: background 0.12s;
-  white-space: nowrap;
+.pending-name {
+  font-size: 0.875rem; color: #374151;
+  min-width: 0; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.btn-upload-confirm:hover:not(:disabled) { background: #2563eb; }
-.btn-upload-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+.uploading-name { color: #6b7280; }
 
-.btn-upload-cancel {
-  padding: 0.375rem 0.75rem;
-  background: white; border: 1px solid #d1d5db;
-  border-radius: 8px; font-size: 0.875rem; cursor: pointer; transition: background 0.12s;
-  white-space: nowrap;
+.pending-hint-inline { font-size: 0.8rem; color: #f59e0b; white-space: nowrap; flex-shrink: 0; }
+
+.btn-pending-cancel {
+  background: none; border: none; color: #9ca3af;
+  cursor: pointer; font-size: 0.875rem; padding: 0.125rem 0.25rem;
+  border-radius: 4px; flex-shrink: 0; transition: color 0.12s;
 }
-.btn-upload-cancel:hover { background: #f9fafb; }
+.btn-pending-cancel:hover { color: #ef4444; }
 
-.upload-hint { font-size: 0.8rem; color: #ef4444; margin: 0.25rem 0 0; }
+/* Upload spinner */
+.upload-spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
