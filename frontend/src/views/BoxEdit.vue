@@ -6,6 +6,44 @@
     </div>
     <div class="card form-card">
       <form @submit.prevent="save">
+
+        <!-- Fotos -->
+        <div class="form-group">
+          <label>Fotos</label>
+          <template v-if="id">
+            <ImageGallery type="boxes" :model-id="id" />
+          </template>
+          <template v-else>
+            <div class="pending-upload">
+              <div class="upload-btns">
+                <label class="btn btn-secondary upload-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  Kamera
+                  <input type="file" accept="image/*" capture="environment" @change="addPending" style="display:none">
+                </label>
+                <label class="btn btn-secondary upload-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  Galerie
+                  <input type="file" accept="image/*" multiple @change="addPending" style="display:none">
+                </label>
+              </div>
+              <div v-if="pendingFiles.length" class="pending-grid">
+                <div v-for="(pf, i) in pendingFiles" :key="i" class="pending-thumb">
+                  <img :src="pf.preview" :alt="pf.file.name">
+                  <button type="button" class="pending-remove" @click="pendingFiles.splice(i, 1)">×</button>
+                </div>
+              </div>
+              <p v-else class="pending-hint">Fotos auswählen – werden beim Speichern hochgeladen</p>
+            </div>
+          </template>
+        </div>
+
         <div class="form-group">
           <label>Name *</label>
           <input v-model="form.name" type="text" required>
@@ -32,9 +70,6 @@
           </button>
         </div>
       </form>
-    </div>
-    <div v-if="id" class="card form-card" style="margin-top:1rem">
-      <ImageGallery type="boxes" :model-id="id" />
     </div>
 
     <div v-if="id" class="actions">
@@ -72,6 +107,7 @@ const saving = ref(false)
 const deleting = ref(false)
 const confirmDelete = ref(false)
 const rooms = ref([])
+const pendingFiles = ref([])
 const form = ref({
   name: '',
   description: '',
@@ -95,6 +131,50 @@ onMounted(async () => {
     }
   }
 })
+
+function addPending(e) {
+  Array.from(e.target.files).forEach(file => {
+    if (!file.type.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = ev => pendingFiles.value.push({ file, preview: ev.target.result })
+    reader.readAsDataURL(file)
+  })
+  e.target.value = ''
+}
+
+async function compressImage(file) {
+  if (file.size <= 500 * 1024) return file
+  return new Promise(resolve => {
+    const fallback = () => resolve(file)
+    try {
+      const reader = new FileReader()
+      reader.onerror = fallback
+      reader.onload = e => {
+        const img = new Image()
+        img.onerror = fallback
+        img.onload = () => {
+          try {
+            const MAX = 1920
+            let { width, height } = img
+            if (width > MAX || height > MAX) {
+              if (width >= height) { height = Math.round(height * MAX / width); width = MAX }
+              else { width = Math.round(width * MAX / height); height = MAX }
+            }
+            const canvas = document.createElement('canvas')
+            canvas.width = width; canvas.height = height
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+            canvas.toBlob(blob => {
+              if (!blob) { fallback(); return }
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }))
+            }, 'image/jpeg', 0.82)
+          } catch { fallback() }
+        }
+        img.src = e.target.result
+      }
+      reader.readAsDataURL(file)
+    } catch { fallback() }
+  })
+}
 
 async function deleteBox() {
   if (deleting.value) return
@@ -123,6 +203,16 @@ async function save() {
       form.value.is_in_inbox = !form.value.room_id
       const res = await api.post('/boxes', form.value)
       const newId = res.data.data?.id
+      if (newId && pendingFiles.value.length) {
+        for (const pf of pendingFiles.value) {
+          try {
+            const compressed = await compressImage(pf.file)
+            const fd = new FormData()
+            fd.append('image', compressed)
+            await api.post(`/boxes/${newId}/images`, fd)
+          } catch { /* einzelner Bild-Fehler überspringen */ }
+        }
+      }
       toast.success('Erstellt')
       const returnTo = route.query.returnTo
       if (returnTo) {
@@ -199,6 +289,28 @@ async function save() {
   margin-top: 1.5rem;
 }
 
+.pending-upload { display: flex; flex-direction: column; gap: 0.75rem; }
+.upload-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.upload-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1rem; font-size: 0.875rem; cursor: pointer;
+}
+.pending-hint { font-size: 0.8rem; color: #9ca3af; margin: 0; }
+
+.pending-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.pending-thumb {
+  position: relative; width: 80px; height: 80px;
+  border-radius: 6px; overflow: hidden;
+}
+.pending-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pending-remove {
+  position: absolute; top: 2px; right: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(239,68,68,0.85); color: #fff;
+  border: none; font-size: 0.75rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+
 .actions { margin-top: 1rem; }
 
 .btn-danger {
@@ -223,6 +335,8 @@ async function save() {
 
 @media (max-width: 767px) {
   .form-card { padding: 1rem; }
+  .upload-btns { flex-direction: row; }
+  .upload-btn { flex: 1; justify-content: center; min-height: 44px; }
   .form-actions {
     flex-direction: column-reverse;
   }
