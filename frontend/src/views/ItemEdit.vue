@@ -1,87 +1,167 @@
 <template>
   <div class="page">
     <div class="page-header">
+      <button class="btn btn-secondary btn-back" @click="$router.back()">← Zurück</button>
       <h1>{{ id ? 'Gegenstand bearbeiten' : 'Neuer Gegenstand' }}</h1>
     </div>
-    <div class="card form-card">
-      <form @submit.prevent="save">
-        <div class="form-group">
-          <label>Name *</label>
-          <input v-model="form.name" type="text" required>
-        </div>
-        <div class="form-group">
-          <label>Beschreibung</label>
-          <textarea v-model="form.description"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Kategorie</label>
-          <select v-model="form.category_id">
-            <option value="">Keine</option>
-            <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Marke</label>
-          <input v-model="form.brand" type="text">
-        </div>
-        <div class="form-group">
-          <label>Modell</label>
-          <input v-model="form.model" type="text">
-        </div>
-        <div class="form-group">
-          <label>Seriennummer</label>
-          <input v-model="form.serial_number" type="text">
-        </div>
-        <div class="form-group">
-          <label>Menge</label>
-          <input v-model="form.quantity" type="number" step="0.01">
-        </div>
 
-        <!-- Bilder: nur im Erstellungsmodus als Pending-Queue -->
-        <div v-if="!id" class="form-group">
-          <label>Bilder</label>
-          <div class="pending-upload">
-            <div class="upload-btns">
-              <label class="btn btn-secondary upload-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4z"/>
-                  <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5m0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
-                </svg>
-                Kamera
-                <input type="file" accept="image/*" capture="environment" @change="addPending" style="display:none">
-              </label>
-              <label class="btn btn-secondary upload-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-                  <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
-                </svg>
-                Galerie
-                <input type="file" accept="image/*" multiple @change="addPending" style="display:none">
-              </label>
-            </div>
-            <div v-if="pendingFiles.length" class="pending-grid">
-              <div v-for="(pf, i) in pendingFiles" :key="i" class="pending-thumb">
-                <img :src="pf.preview" :alt="pf.file.name">
-                <button type="button" class="pending-remove" @click="pendingFiles.splice(i, 1)">×</button>
+    <div v-if="loading" class="loading">Wird geladen...</div>
+
+    <template v-else>
+      <div class="card form-card">
+        <form @submit.prevent="save">
+
+          <!-- Fotos -->
+          <div class="form-group">
+            <label>Fotos</label>
+            <template v-if="id">
+              <ImageGallery type="items" :model-id="id" />
+            </template>
+            <template v-else>
+              <div class="pending-upload">
+                <div class="upload-btns">
+                  <label class="btn btn-secondary upload-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    Kamera
+                    <input type="file" accept="image/*" capture="environment" @change="addPending" style="display:none">
+                  </label>
+                  <label class="btn btn-secondary upload-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    Galerie
+                    <input type="file" accept="image/*" multiple @change="addPending" style="display:none">
+                  </label>
+                </div>
+                <div v-if="pendingFiles.length" class="pending-grid">
+                  <div v-for="(pf, i) in pendingFiles" :key="i" class="pending-thumb">
+                    <img :src="pf.preview" :alt="pf.file.name">
+                    <button type="button" class="pending-remove" @click="pendingFiles.splice(i, 1)">×</button>
+                  </div>
+                </div>
+                <p v-else class="pending-hint">Fotos auswählen – werden beim Speichern hochgeladen</p>
               </div>
-            </div>
-            <p v-else class="pending-hint">Fotos auswählen – werden beim Speichern hochgeladen</p>
+            </template>
           </div>
-        </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" @click="$router.back()">Abbrechen</button>
-          <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? 'Wird gespeichert...' : 'Speichern' }}
-          </button>
-        </div>
-      </form>
-    </div>
+          <!-- Name -->
+          <div class="form-group">
+            <label>Name *</label>
+            <input v-model="form.name" type="text" required placeholder="z.B. Laptop, Stuhl…">
+          </div>
 
-    <!-- Bilder im Bearbeitungsmodus -->
-    <div v-if="id" class="card form-card" style="margin-top:1rem">
-      <ImageGallery type="items" :model-id="id" />
-    </div>
+          <!-- Kategorie / Zustand -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Kategorie</label>
+              <select v-model="form.category_id">
+                <option value="">Keine</option>
+                <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Zustand</label>
+              <select v-model="form.condition">
+                <option value="">–</option>
+                <option>Neu</option>
+                <option>Gut</option>
+                <option>Gebraucht</option>
+                <option>Defekt</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Marke / Modell -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Marke</label>
+              <input v-model="form.brand" type="text" placeholder="z.B. Apple">
+            </div>
+            <div class="form-group">
+              <label>Modell</label>
+              <input v-model="form.model" type="text" placeholder="z.B. MacBook Pro">
+            </div>
+          </div>
+
+          <!-- Menge / Einheit -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Menge</label>
+              <input v-model="form.quantity" type="number" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label>Einheit</label>
+              <input v-model="form.unit" type="text" placeholder="z.B. Stück">
+            </div>
+          </div>
+
+          <!-- Seriennummer -->
+          <div class="form-group">
+            <label>Seriennummer</label>
+            <input v-model="form.serial_number" type="text">
+          </div>
+
+          <!-- Raum / Box -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Raum</label>
+              <select v-model="form.room_id" @change="form.box_id = ''">
+                <option value="">–</option>
+                <option v-for="r in rooms" :key="r.id" :value="r.id">{{ r.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Box</label>
+              <select v-model="form.box_id" @change="form.room_id = ''">
+                <option value="">–</option>
+                <option v-for="b in boxes" :key="b.id" :value="b.id">{{ b.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Kaufpreis / Kaufdatum -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Kaufpreis (CHF)</label>
+              <input v-model="form.purchase_price" type="number" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label>Kaufdatum</label>
+              <input v-model="form.purchased_at" type="date">
+            </div>
+          </div>
+
+          <!-- Garantie -->
+          <div class="form-group">
+            <label>Garantie bis</label>
+            <input v-model="form.warranty_until" type="date">
+          </div>
+
+          <!-- Beschreibung -->
+          <div class="form-group">
+            <label>Beschreibung</label>
+            <textarea v-model="form.description" rows="2" placeholder="Optional…"></textarea>
+          </div>
+
+          <!-- Notizen -->
+          <div class="form-group">
+            <label>Notizen</label>
+            <textarea v-model="form.notes" rows="2" placeholder="Interne Notizen…"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" @click="$router.back()">Abbrechen</button>
+            <button type="submit" class="btn btn-primary" :disabled="saving || !form.name">
+              {{ saving ? 'Wird gespeichert...' : (id ? 'Speichern' : 'Erstellen') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -97,34 +177,71 @@ const router = useRouter()
 const toast = useToast()
 
 const id = route.params.id
-const categories = ref([])
+const loading = ref(false)
 const saving = ref(false)
+const categories = ref([])
+const rooms = ref([])
+const boxes = ref([])
 const pendingFiles = ref([])
 
 const form = ref({
   name: '',
   description: '',
+  notes: '',
   category_id: '',
+  condition: '',
   brand: '',
   model: '',
   serial_number: '',
-  quantity: 1
+  quantity: 1,
+  unit: '',
+  room_id: '',
+  box_id: '',
+  purchase_price: '',
+  purchased_at: '',
+  warranty_until: '',
 })
 
 onMounted(async () => {
+  loading.value = true
   try {
-    const res = await api.get('/categories')
-    categories.value = res.data.data
-  } catch (e) {}
+    const requests = [
+      api.get('/categories'),
+      api.get('/rooms'),
+      api.get('/boxes', { params: { per_page: 200 } }),
+    ]
+    if (id) requests.push(api.get(`/items/${id}`))
 
-  if (id) {
-    try {
-      const res = await api.get(`/items/${id}`)
-      form.value = res.data.data
-    } catch (e) {
-      toast.error('Item nicht gefunden')
-      router.push('/items')
+    const results = await Promise.all(requests)
+    categories.value = results[0].data.data
+    rooms.value = results[1].data.data
+    boxes.value = results[2].data.data?.data ?? results[2].data.data
+
+    if (id) {
+      const item = results[3].data.data
+      form.value = {
+        name: item.name ?? '',
+        description: item.description ?? '',
+        notes: item.notes ?? '',
+        category_id: item.category_id ?? '',
+        condition: item.condition ?? '',
+        brand: item.brand ?? '',
+        model: item.model ?? '',
+        serial_number: item.serial_number ?? '',
+        quantity: item.quantity ?? 1,
+        unit: item.unit ?? '',
+        room_id: item.room_id ?? '',
+        box_id: item.box_id ?? '',
+        purchase_price: item.purchase_price ?? '',
+        purchased_at: item.purchased_at ? item.purchased_at.substring(0, 10) : '',
+        warranty_until: item.warranty_until ? item.warranty_until.substring(0, 10) : '',
+      }
     }
+  } catch {
+    toast.error('Fehler beim Laden')
+    router.push({ name: 'Items' })
+  } finally {
+    loading.value = false
   }
 })
 
@@ -139,63 +256,64 @@ function addPending(e) {
 }
 
 async function compressImage(file) {
-  const THRESHOLD = 500 * 1024
-  if (file.size <= THRESHOLD) return file
+  if (file.size <= 500 * 1024) return file
   return new Promise(resolve => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      const img = new Image()
-      img.onload = () => {
-        const MAX = 1920
-        let { width, height } = img
-        if (width > MAX || height > MAX) {
-          if (width >= height) { height = Math.round(height * MAX / width); width = MAX }
-          else { width = Math.round(width * MAX / height); height = MAX }
+    const fallback = () => resolve(file)
+    try {
+      const reader = new FileReader()
+      reader.onerror = fallback
+      reader.onload = e => {
+        const img = new Image()
+        img.onerror = fallback
+        img.onload = () => {
+          try {
+            const MAX = 1920
+            let { width, height } = img
+            if (width > MAX || height > MAX) {
+              if (width >= height) { height = Math.round(height * MAX / width); width = MAX }
+              else { width = Math.round(width * MAX / height); height = MAX }
+            }
+            const canvas = document.createElement('canvas')
+            canvas.width = width; canvas.height = height
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+            canvas.toBlob(blob => {
+              if (!blob) { fallback(); return }
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }))
+            }, 'image/jpeg', 0.82)
+          } catch { fallback() }
         }
-        const canvas = document.createElement('canvas')
-        canvas.width = width; canvas.height = height
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
-        canvas.toBlob(blob => {
-          const name = file.name.replace(/\.[^.]+$/, '.jpg')
-          resolve(new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() }))
-        }, 'image/jpeg', 0.82)
+        img.src = e.target.result
       }
-      img.src = e.target.result
-    }
-    reader.readAsDataURL(file)
+      reader.readAsDataURL(file)
+    } catch { fallback() }
   })
 }
 
-async function uploadPending(itemId) {
-  for (const pf of pendingFiles.value) {
-    try {
-      const compressed = await compressImage(pf.file)
-      const fd = new FormData()
-      fd.append('image', compressed)
-      await api.post(`/items/${itemId}/images`, fd)
-    } catch (e) {
-      toast.error(`Bild konnte nicht hochgeladen werden: ${pf.file.name}`)
-    }
-  }
-}
-
 async function save() {
+  if (!form.value.name || saving.value) return
   saving.value = true
   try {
     if (id) {
       await api.put(`/items/${id}`, form.value)
-      toast.success('Aktualisiert')
-      router.push('/items')
+      toast.success('Gespeichert')
+      router.push({ name: 'ItemDetail', params: { id } })
     } else {
       const res = await api.post('/items', form.value)
       const newId = res.data.data?.id
       if (newId && pendingFiles.value.length) {
-        await uploadPending(newId)
+        for (const pf of pendingFiles.value) {
+          try {
+            const compressed = await compressImage(pf.file)
+            const fd = new FormData()
+            fd.append('image', compressed)
+            await api.post(`/items/${newId}/images`, fd)
+          } catch { /* einzelner Bild-Fehler überspringen */ }
+        }
       }
       toast.success('Erstellt')
-      router.push(newId ? `/items/${newId}/edit` : '/items')
+      router.push({ name: 'ItemDetail', params: { id: newId } })
     }
-  } catch (e) {
+  } catch {
     toast.error('Fehler beim Speichern')
   } finally {
     saving.value = false
@@ -205,10 +323,70 @@ async function save() {
 
 <style scoped>
 .page { max-width: 800px; margin: 0 auto; }
-.page-header { margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.5rem; font-weight: 600; }
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.btn-back { flex-shrink: 0; }
+
 .form-card { padding: 1.5rem; }
-.form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.3rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  background: white;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.form-group textarea { resize: vertical; min-height: 60px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
 
 .pending-upload { display: flex; flex-direction: column; gap: 0.75rem; }
 .upload-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; }
@@ -222,8 +400,8 @@ async function save() {
 .pending-thumb {
   position: relative; width: 80px; height: 80px;
   border-radius: 6px; overflow: hidden;
-  img { width: 100%; height: 100%; object-fit: cover; display: block; }
 }
+.pending-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pending-remove {
   position: absolute; top: 2px; right: 2px;
   width: 20px; height: 20px; border-radius: 50%;
@@ -232,13 +410,16 @@ async function save() {
   display: flex; align-items: center; justify-content: center; padding: 0;
 }
 
+.loading { padding: 2rem; text-align: center; color: #6b7280; }
+
 @media (max-width: 767px) {
   .form-card { padding: 1rem; }
+  .form-row { grid-template-columns: 1fr; }
   .upload-btns { flex-direction: row; }
   .upload-btn { flex: 1; justify-content: center; min-height: 44px; }
   .form-actions {
     flex-direction: column-reverse;
-    .btn { width: 100%; justify-content: center; }
   }
+  .form-actions .btn { width: 100%; justify-content: center; }
 }
 </style>

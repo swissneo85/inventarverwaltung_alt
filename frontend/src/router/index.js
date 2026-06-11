@@ -21,7 +21,7 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/items/create',
+    path: '/items/new',
     name: 'ItemCreate',
     component: () => import('@/views/ItemEdit.vue'),
     meta: { requiresAuth: true }

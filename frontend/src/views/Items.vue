@@ -2,7 +2,7 @@
   <div class="items-page">
     <div class="page-header">
       <h1>Gegenstände</h1>
-      <button class="btn btn-primary" @click="openCreate">
+      <button class="btn btn-primary" @click="$router.push({ name: 'ItemCreate' })">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -99,14 +99,14 @@
       </svg>
       <h3>Keine Gegenstände gefunden</h3>
       <p>Legen Sie Ihren ersten Gegenstand an</p>
-      <button class="btn btn-primary" @click="openCreate">
+      <button class="btn btn-primary" @click="$router.push({ name: 'ItemCreate' })">
         Neuer Gegenstand
       </button>
     </div>
     
     <!-- List View -->
     <div v-else-if="viewMode === 'list'" class="items-list">
-      <ItemCard v-for="item in items" :key="item.id" :item="item" @edit="openEdit" />
+      <ItemCard v-for="item in items" :key="item.id" :item="item" />
     </div>
 
     <!-- Gallery View -->
@@ -179,12 +179,12 @@
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </router-link>
-                <button class="row-btn" title="Bearbeiten" @click="openEdit(item.id)">
+                <router-link :to="{ name: 'ItemEdit', params: { id: item.id } }" class="row-btn" title="Bearbeiten">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
-                </button>
+                </router-link>
               </td>
             </tr>
           </tbody>
@@ -239,28 +239,20 @@
       </button>
     </div>
 
-    <!-- Modals -->
-    <ItemModal v-if="modal.open" :item-id="modal.itemId" @close="modal.open = false" @saved="onSaved" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useItemsStore } from '@/stores/items'
 import api from '@/services/api'
 import ItemCard from '@/components/ItemCard.vue'
-import ItemModal from '@/components/ItemModal.vue'
 import { debounce } from 'lodash'
 
 const STORAGE_KEY = 'items-view-mode'
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
-const itemsStore = useItemsStore()
-
-const modal = ref({ open: false, itemId: null })
 
 const items = ref([])
 const categories = ref([])
@@ -298,10 +290,8 @@ onMounted(async () => {
 
   await fetchItems()
 
-  // Auto-open modal when navigating from Dashboard (?new=1)
   if (route.query.new) {
-    openCreate()
-    router.replace({ path: '/items' })
+    router.replace({ name: 'ItemCreate' })
   }
 })
 
@@ -360,18 +350,6 @@ function getLocationText(item) {
 function conditionClass(condition) {
   const map = { 'Neu': 'cond-new', 'Gut': 'cond-good', 'Gebraucht': 'cond-used', 'Defekt': 'cond-broken' }
   return map[condition] || 'cond-default'
-}
-
-function openCreate() {
-  modal.value = { open: true, itemId: null }
-}
-
-function openEdit(itemId) {
-  modal.value = { open: true, itemId }
-}
-
-async function onSaved() {
-  await fetchItems()
 }
 </script>
 
