@@ -481,8 +481,7 @@ async function save() {
         }
       }
       toast.success('Erstellt')
-      // Edit-Modus öffnen damit Dokumente sofort hochgeladen werden können
-      router.push({ name: 'ItemEdit', params: { id: newId } })
+      router.push({ name: 'ItemDetail', params: { id: newId } })
     }
   } catch {
     toast.error('Fehler beim Speichern')
