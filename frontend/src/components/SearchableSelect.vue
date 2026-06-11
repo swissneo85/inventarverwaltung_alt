@@ -225,8 +225,9 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 .searchable-select__panel {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
   right: 0;
+  left: auto;
+  min-width: max(200px, 100%);
   z-index: 100;
   background: white;
   border: 1px solid #d1d5db;
