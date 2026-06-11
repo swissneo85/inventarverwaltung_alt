@@ -72,8 +72,8 @@
       </form>
     </div>
 
-    <div v-if="id" class="actions">
-      <button class="btn-danger" @click="confirmDelete = true">Löschen</button>
+    <div v-if="id" class="danger-zone">
+      <button type="button" class="btn-delete" @click="confirmDelete = true">🗑 Box löschen</button>
     </div>
 
     <!-- Delete confirmation -->
@@ -311,7 +311,15 @@ async function save() {
   display: flex; align-items: center; justify-content: center; padding: 0;
 }
 
-.actions { margin-top: 1rem; }
+.danger-zone {
+  margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #fee2e2;
+}
+.btn-delete {
+  width: 100%; padding: 0.75rem; background: none;
+  border: 1px solid #ef4444; color: #ef4444;
+  border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.15s;
+  &:hover { background: #fef2f2; }
+}
 
 .btn-danger {
   display: inline-flex; align-items: center; gap: 0.4rem;

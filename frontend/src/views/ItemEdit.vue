@@ -169,7 +169,25 @@
           </div>
         </form>
       </div>
+
+      <!-- Delete (edit mode only) -->
+      <div v-if="id" class="danger-zone">
+        <button type="button" class="btn-delete" @click="confirmDelete = true">🗑 Gegenstand löschen</button>
+      </div>
     </template>
+
+    <!-- Delete confirmation -->
+    <div v-if="confirmDelete" class="confirm-backdrop" @click.self="confirmDelete = false">
+      <div class="confirm-dialog">
+        <p>Gegenstand <strong>{{ form.name }}</strong> wirklich löschen?</p>
+        <div class="confirm-actions">
+          <button class="btn btn-secondary" @click="confirmDelete = false">Abbrechen</button>
+          <button class="btn-danger" :disabled="deleting" @click="deleteItem">
+            {{ deleting ? '…' : 'Löschen' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -188,6 +206,8 @@ const toast = useToast()
 const id = route.params.id
 const loading = ref(false)
 const saving = ref(false)
+const deleting = ref(false)
+const confirmDelete = ref(false)
 const categories = ref([])
 const rooms = ref([])
 const boxes = ref([])
@@ -317,6 +337,21 @@ async function compressImage(file) {
   })
 }
 
+async function deleteItem() {
+  if (deleting.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/items/${id}`)
+    toast.success('Gegenstand gelöscht')
+    router.push({ name: 'Items' })
+  } catch {
+    // interceptor shows error
+  } finally {
+    deleting.value = false
+    confirmDelete.value = false
+  }
+}
+
 async function save() {
   if (!form.value.name || saving.value) return
   saving.value = true
@@ -439,6 +474,36 @@ async function save() {
 }
 
 .loading { padding: 2rem; text-align: center; color: #6b7280; }
+
+.danger-zone {
+  margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #fee2e2;
+}
+.btn-delete {
+  width: 100%; padding: 0.75rem; background: none;
+  border: 1px solid #ef4444; color: #ef4444;
+  border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.15s;
+}
+.btn-delete:hover { background: #fef2f2; }
+
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0.875rem; background: #fee2e2; color: #991b1b;
+  border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.875rem;
+  font-weight: 500; cursor: pointer; transition: background 0.15s;
+}
+.btn-danger:hover:not(:disabled) { background: #fecaca; }
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.confirm-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog {
+  background: white; border-radius: 12px; padding: 1.5rem; margin: 1rem;
+  min-width: 280px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  p { margin: 0 0 1.25rem; font-size: 1rem; color: #111827; }
+}
+.confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
 
 @media (max-width: 767px) {
   .form-card { padding: 1rem; }

@@ -61,25 +61,7 @@
           </router-link>
         </div>
       </div>
-
-      <!-- Delete -->
-      <div class="danger-zone">
-        <button class="btn-delete" @click="confirmDelete = true">🗑 Raum löschen</button>
-      </div>
     </template>
-
-    <!-- Delete confirmation -->
-    <div v-if="confirmDelete" class="confirm-backdrop" @click.self="confirmDelete = false">
-      <div class="confirm-dialog">
-        <p>Raum <strong>{{ room?.name }}</strong> wirklich löschen?</p>
-        <div class="confirm-actions">
-          <button class="btn btn-secondary" @click="confirmDelete = false">Abbrechen</button>
-          <button class="btn-danger" :disabled="deleting" @click="deleteRoom">
-            {{ deleting ? '…' : 'Löschen' }}
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -98,8 +80,6 @@ const room = ref(null)
 const boxes = ref([])
 const items = ref([])
 const loading = ref(true)
-const confirmDelete = ref(false)
-const deleting = ref(false)
 
 onMounted(async () => {
   const id = route.params.id
@@ -119,20 +99,6 @@ onMounted(async () => {
   }
 })
 
-async function deleteRoom() {
-  if (deleting.value) return
-  deleting.value = true
-  try {
-    await api.delete(`/rooms/${room.value.id}`)
-    toast.success('Raum gelöscht')
-    router.push({ name: 'Rooms' })
-  } catch {
-    // API interceptor shows error
-  } finally {
-    deleting.value = false
-    confirmDelete.value = false
-  }
-}
 </script>
 
 <style scoped>
@@ -172,39 +138,7 @@ async function deleteRoom() {
 .sub-meta { font-size: 0.75rem; color: #9ca3af; flex-shrink: 0; }
 .sub-chevron { color: #d1d5db; flex-shrink: 0; }
 
-.danger-zone {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #fee2e2;
-}
-.btn-delete {
-  width: 100%; padding: 0.75rem; background: none;
-  border: 1px solid #ef4444; color: #ef4444;
-  border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.15s;
-  &:hover { background: #fef2f2; }
-}
-
-.btn-danger {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.5rem 0.875rem; background: #fee2e2; color: #991b1b;
-  border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.875rem;
-  font-weight: 500; cursor: pointer; transition: background 0.15s;
-  &:hover:not(:disabled) { background: #fecaca; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-}
-
 .loading { padding: 2rem; text-align: center; color: #6b7280; }
-
-.confirm-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500;
-  display: flex; align-items: center; justify-content: center;
-}
-.confirm-dialog {
-  background: white; border-radius: 12px; padding: 1.5rem; margin: 1rem;
-  min-width: 280px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  p { margin: 0 0 1.25rem; font-size: 1rem; color: #111827; }
-}
-.confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
 
 @media (max-width: 767px) {
   .detail-card { padding: 1rem; }
