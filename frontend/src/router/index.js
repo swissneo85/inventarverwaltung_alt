@@ -99,6 +99,18 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/categories/new',
+    name: 'CategoryCreate',
+    component: () => import('@/views/CategoryForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/categories/:id/edit',
+    name: 'CategoryEdit',
+    component: () => import('@/views/CategoryForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/scan/:token?',
     name: 'Scan',
     component: () => import('@/views/Scan.vue'),

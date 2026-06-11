@@ -58,10 +58,13 @@
           <div class="form-row">
             <div class="form-group">
               <label>Kategorie</label>
-              <select v-model="form.category_id">
-                <option value="">Keine</option>
-                <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
+              <SearchableSelect
+                v-model="form.category_id"
+                :options="categoryOptions"
+                placeholder="Kategorie wählen…"
+                create-route="CategoryCreate"
+                create-label="Neue Kategorie anlegen"
+              />
             </div>
             <div class="form-group">
               <label>Zustand</label>
@@ -221,6 +224,10 @@ const boxOptions = computed(() =>
   boxes.value.map(b => ({ value: b.id, label: b.name }))
 )
 
+const categoryOptions = computed(() =>
+  categories.value.map(c => ({ value: c.id, label: c.name }))
+)
+
 const form = ref({
   name: '',
   description: '',
@@ -275,7 +282,7 @@ onMounted(async () => {
       }
     }
 
-    // Pre-select newly created room or box when returning from create flow
+    // Pre-select newly created room, box or category when returning from create flow
     if (route.query.newRoomId) {
       form.value.room_id = Number(route.query.newRoomId)
       form.value.box_id = ''
@@ -284,6 +291,9 @@ onMounted(async () => {
       form.value.box_id = Number(route.query.newBoxId)
       form.value.room_id = ''
       router.replace({ query: { ...route.query, newBoxId: undefined } })
+    } else if (route.query.newCategoryId) {
+      form.value.category_id = Number(route.query.newCategoryId)
+      router.replace({ query: { ...route.query, newCategoryId: undefined } })
     }
   } catch {
     toast.error('Fehler beim Laden')
