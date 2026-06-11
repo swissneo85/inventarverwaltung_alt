@@ -65,5 +65,10 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Database seeded successfully!');
         $this->command->info('Admin login: admin / admin123');
         $this->command->info('User login: max / password');
+
+        $this->call([
+            RoomSeeder::class,
+            CategorySeeder::class,
+        ]);
     }
 }
