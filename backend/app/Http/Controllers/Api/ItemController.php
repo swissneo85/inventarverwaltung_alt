@@ -110,13 +110,14 @@ class ItemController extends BaseApiController
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:categories,id',
+            'person_id' => 'nullable|exists:persons,id',
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'article_number' => 'nullable|string|max:255',
             'ean' => 'nullable|string|max:255',
             'inventory_number' => 'nullable|string|max:255',
-            
+
             // Location (nur eins sollte gesetzt sein)
             'room_id' => 'nullable|exists:rooms,id',
             'box_id' => 'nullable|exists:boxes,id',
@@ -151,7 +152,7 @@ class ItemController extends BaseApiController
 
         $item = Item::create($validated);
 
-        return $this->success($item->load(['category', 'room', 'box']), 'Item erstellt', 201);
+        return $this->success($item->load(['category', 'person', 'room', 'box']), 'Item erstellt', 201);
     }
 
     /**
@@ -187,13 +188,14 @@ class ItemController extends BaseApiController
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:categories,id',
+            'person_id' => 'nullable|exists:persons,id',
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'article_number' => 'nullable|string|max:255',
             'ean' => 'nullable|string|max:255',
             'inventory_number' => 'nullable|string|max:255',
-            
+
             'room_id' => 'nullable|exists:rooms,id',
             'box_id' => 'nullable|exists:boxes,id',
             'is_in_inbox' => 'nullable|boolean',
@@ -219,7 +221,7 @@ class ItemController extends BaseApiController
 
         $item->update($validated);
 
-        return $this->success($item->load(['category', 'room', 'box']), 'Item aktualisiert');
+        return $this->success($item->load(['category', 'person', 'room', 'box']), 'Item aktualisiert');
     }
 
     /**

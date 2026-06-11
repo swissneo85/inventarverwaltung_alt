@@ -99,6 +99,24 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/persons',
+    name: 'PersonList',
+    component: () => import('@/views/persons/PersonList.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/persons/new',
+    name: 'PersonCreate',
+    component: () => import('@/views/persons/PersonForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/persons/:id/edit',
+    name: 'PersonEdit',
+    component: () => import('@/views/persons/PersonForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/categories/new',
     name: 'CategoryCreate',
     component: () => import('@/views/CategoryForm.vue'),

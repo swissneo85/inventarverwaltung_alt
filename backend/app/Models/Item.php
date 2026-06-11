@@ -15,6 +15,7 @@ class Item extends Model
         'description',
         'category_id',
         'subcategory_id',
+        'person_id',
         'brand',
         'model',
         'serial_number',
@@ -53,6 +54,7 @@ class Item extends Model
         'box_id' => 'integer',
         'category_id' => 'integer',
         'subcategory_id' => 'integer',
+        'person_id' => 'integer',
     ];
 
     protected $appends = ['display_id', 'qr_code_url', 'location_type'];
@@ -110,6 +112,11 @@ class Item extends Model
     /**
      * Kategorie
      */
+    public function person()
+    {
+        return $this->belongsTo(Person::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);

@@ -78,6 +78,18 @@
             </div>
           </div>
 
+          <!-- Besitzer -->
+          <div class="form-group">
+            <label>Besitzer</label>
+            <SearchableSelect
+              v-model="form.person_id"
+              :options="personOptions"
+              placeholder="Besitzer wählen…"
+              create-route="PersonCreate"
+              create-label="Neue Person anlegen"
+            />
+          </div>
+
           <!-- Marke / Modell -->
           <div class="form-row">
             <div class="form-group">
@@ -214,6 +226,7 @@ const confirmDelete = ref(false)
 const categories = ref([])
 const rooms = ref([])
 const boxes = ref([])
+const persons = ref([])
 const pendingFiles = ref([])
 
 const roomOptions = computed(() =>
@@ -228,11 +241,16 @@ const categoryOptions = computed(() =>
   categories.value.map(c => ({ value: c.id, label: c.name }))
 )
 
+const personOptions = computed(() =>
+  persons.value.map(p => ({ value: p.id, label: p.name }))
+)
+
 const form = ref({
   name: '',
   description: '',
   notes: '',
   category_id: '',
+  person_id: '',
   condition: '',
   brand: '',
   model: '',
@@ -253,6 +271,7 @@ onMounted(async () => {
       api.get('/categories'),
       api.get('/rooms'),
       api.get('/boxes', { params: { per_page: 200 } }),
+      api.get('/persons'),
     ]
     if (id) requests.push(api.get(`/items/${id}`))
 
@@ -260,14 +279,16 @@ onMounted(async () => {
     categories.value = results[0].data.data
     rooms.value = results[1].data.data
     boxes.value = results[2].data.data?.data ?? results[2].data.data
+    persons.value = results[3].data.data
 
     if (id) {
-      const item = results[3].data.data
+      const item = results[4].data.data
       form.value = {
         name: item.name ?? '',
         description: item.description ?? '',
         notes: item.notes ?? '',
         category_id: item.category_id ?? '',
+        person_id: item.person_id ?? '',
         condition: item.condition ?? '',
         brand: item.brand ?? '',
         model: item.model ?? '',
@@ -294,6 +315,9 @@ onMounted(async () => {
     } else if (route.query.newCategoryId) {
       form.value.category_id = Number(route.query.newCategoryId)
       router.replace({ query: { ...route.query, newCategoryId: undefined } })
+    } else if (route.query.newPersonId) {
+      form.value.person_id = Number(route.query.newPersonId)
+      router.replace({ query: { ...route.query, newPersonId: undefined } })
     }
   } catch {
     toast.error('Fehler beim Laden')

@@ -58,6 +58,14 @@
         <span v-if="!collapsed">Kategorien</span>
       </router-link>
 
+      <router-link to="/persons" class="nav-item" title="Personen" @click="onNavClick">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span v-if="!collapsed">Personen</span>
+      </router-link>
+
       <router-link to="/scan" class="nav-item" title="QR-Code" @click="onNavClick">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"></path>

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\BoxController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\PersonController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\LoginLogController;
 use App\Http\Controllers\Api\SearchController;
@@ -85,6 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Bilder löschen
     Route::delete('/images/{imageId}', [ImageController::class, 'destroy']);
     
+    // Personen
+    Route::apiResource('persons', PersonController::class);
+
     // Kategorien
     Route::apiResource('categories', CategoryController::class);
     Route::get('/categories/{id}/items', [CategoryController::class, 'items']);
