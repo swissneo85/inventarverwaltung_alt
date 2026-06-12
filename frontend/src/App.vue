@@ -203,6 +203,9 @@ function toggleSidebar() {
 .content {
   flex: 1;
   padding: 1.25rem;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* Bottom nav – hidden on desktop */
@@ -217,6 +220,7 @@ function toggleSidebar() {
   .content {
     padding: 1rem;
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    max-width: none;
   }
 
   .bottom-nav {
