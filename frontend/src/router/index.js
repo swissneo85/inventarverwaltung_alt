@@ -93,6 +93,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/loans',
+    name: 'LoanList',
+    component: () => import('@/views/loans/LoanList.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/categories',
     name: 'Categories',
     component: () => import('@/views/Categories.vue'),

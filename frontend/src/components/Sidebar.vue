@@ -51,6 +51,17 @@
         <span v-if="!collapsed">Inbox</span>
       </router-link>
 
+      <router-link to="/loans" class="nav-item" title="Ausgeliehen" @click="onNavClick">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 12V22H4V12"></path>
+          <path d="M22 7H2v5h20V7z"></path>
+          <path d="M12 22V7"></path>
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+        </svg>
+        <span v-if="!collapsed">Ausgeliehen</span>
+      </router-link>
+
       <router-link v-if="isEditor" to="/categories" class="nav-item" title="Kategorien" @click="onNavClick">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
