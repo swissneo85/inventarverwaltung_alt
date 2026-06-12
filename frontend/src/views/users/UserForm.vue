@@ -58,12 +58,8 @@
                 :key="category.id"
                 class="category-checkbox-row"
               >
-                <input
-                  type="checkbox"
-                  :value="category.id"
-                  v-model="selectedCategoryIds"
-                />
-                {{ category.name }}
+                <input type="checkbox" :value="category.id" v-model="selectedCategoryIds" />
+                <span>{{ category.name }}</span>
               </label>
               <p v-if="categories.length === 0" class="field-hint" style="padding: 0.625rem 0.875rem; margin: 0;">Keine Kategorien vorhanden.</p>
             </div>
@@ -317,7 +313,7 @@ async function doDelete() {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 0.875rem;
+  padding: 0.5rem 0.875rem;
   border-bottom: 1px solid #f3f4f6;
   cursor: pointer;
   font-size: 0.875rem;
