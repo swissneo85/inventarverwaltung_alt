@@ -71,10 +71,10 @@ const userName = computed(() => {
 const roleLabel = computed(() => {
   const roles = {
     admin: 'Administrator',
-    user: 'Benutzer',
+    editor: 'Bearbeiter',
     viewer: 'Betrachter',
   }
-  return roles[authStore.user?.role] || 'Benutzer'
+  return roles[authStore.user?.role] || authStore.user?.role || 'Benutzer'
 })
 
 async function handleLogout() {
@@ -192,9 +192,9 @@ onUnmounted(() => {
     color: #92400e;
   }
   
-  &.user {
-    background: #dbeafe;
-    color: #1e40af;
+  &.editor {
+    background: #dcfce7;
+    color: #166534;
   }
   
   &.viewer {
