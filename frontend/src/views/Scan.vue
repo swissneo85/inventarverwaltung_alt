@@ -5,6 +5,12 @@
       <p>Scannen Sie einen QR-Code, um direkt zum entsprechenden Eintrag zu gelangen.</p>
     </div>
 
+    <!-- Kamera-Scan -->
+    <div class="card scan-card">
+      <h2>Kamera scannen</h2>
+      <QrScanner @scanned="handleCameraScan" />
+    </div>
+
     <!-- Manual Input -->
     <div class="card scan-card">
       <h2>QR-Code eingeben</h2>
@@ -80,6 +86,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
+import QrScanner from '@/components/QrScanner.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -207,6 +214,24 @@ function formatTime(isoString) {
 
 function goToItem(scan) {
   router.push(scan.url)
+}
+
+function handleCameraScan(data) {
+  const match = data.match(/^([IRB])(\d+)$/i)
+  if (match) {
+    const type = match[1].toUpperCase()
+    const id = match[2]
+    if (type === 'I') router.push({ name: 'ItemDetail', params: { id } })
+    if (type === 'R') router.push({ name: 'RoomDetail', params: { id } })
+    if (type === 'B') router.push({ name: 'BoxDetail', params: { id } })
+  } else {
+    try {
+      const url = new URL(data)
+      router.push(url.pathname)
+    } catch {
+      toast.error('Unbekannter QR-Code: ' + data)
+    }
+  }
 }
 </script>
 

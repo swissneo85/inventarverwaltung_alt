@@ -13,9 +13,9 @@
     
     <!-- Filters -->
     <div class="filters-card card">
-      <div class="filters-row">
-        <div class="search-field">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
@@ -23,38 +23,35 @@
             v-model="searchQuery"
             type="text"
             placeholder="Suchen..."
+            class="search-input"
             @input="handleSearch"
           />
         </div>
-        
-        <select v-model="filters.category_id" @change="fetchItems" class="filter-select">
-          <option value="">Alle Kategorien</option>
-          <option v-for="cat in visibleCategories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </option>
-        </select>
-        
-        <select v-model="filters.room_id" @change="fetchItems" class="filter-select">
-          <option value="">Alle Räume</option>
-          <option v-for="room in rooms" :key="room.id" :value="room.id">
-            {{ room.name }}
-          </option>
-        </select>
-        
-        <button @click="showFilters = !showFilters" class="btn-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-          </svg>
-          Filter
-        </button>
+
+        <div class="filter-wrap">
+          <SearchableSelect
+            v-model="filters.category_id"
+            :options="categoryOptions"
+            placeholder="Alle Kategorien"
+            :create-route="null"
+          />
+        </div>
+
+        <div class="filter-wrap">
+          <SearchableSelect
+            v-model="filters.room_id"
+            :options="roomOptions"
+            placeholder="Alle Räume"
+            :create-route="null"
+          />
+        </div>
       </div>
-      
-      <div v-if="showFilters" class="filters-expanded">
+
+      <div class="filters-expanded">
         <label class="filter-checkbox">
           <input type="checkbox" v-model="filters.in_inbox" @change="fetchItems">
           Nur Inbox
         </label>
-        
         <label class="filter-checkbox">
           <input type="checkbox" v-model="filters.warranty_expiring" @change="fetchItems">
           Garantie läuft ab
@@ -249,6 +246,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import ItemCard from '@/components/ItemCard.vue'
+import SearchableSelect from '@/components/SearchableSelect.vue'
 import { debounce } from 'lodash'
 import { useAuthStore } from '@/stores/auth'
 
@@ -268,10 +266,22 @@ const visibleCategories = computed(() => {
   if (!perms) return categories.value
   return categories.value.filter(c => perms.includes(c.id))
 })
+
+const categoryOptions = computed(() => [
+  { value: '', label: 'Alle Kategorien' },
+  ...visibleCategories.value.map(c => ({ value: c.id, label: c.name }))
+])
+
+const roomOptions = computed(() => [
+  { value: '', label: 'Alle Räume' },
+  ...rooms.value.map(r => ({ value: r.id, label: r.name }))
+])
+
 const loading = ref(false)
-const showFilters = ref(false)
 const viewMode = ref(localStorage.getItem(STORAGE_KEY) || 'list')
 watch(viewMode, val => localStorage.setItem(STORAGE_KEY, val))
+watch(() => filters.value.category_id, () => { pagination.value.current_page = 1; fetchItems() })
+watch(() => filters.value.room_id, () => { pagination.value.current_page = 1; fetchItems() })
 const searchQuery = ref('')
 const filters = ref({
   category_id: '',
@@ -388,48 +398,45 @@ function conditionClass(condition) {
   margin-bottom: 1.5rem;
 }
 
-.filters-row {
+.search-bar {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.search-field {
+.search-input-wrap {
   flex: 1;
   min-width: 200px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: #f3f4f6;
-  border-radius: 8px;
-  
-  svg {
-    color: #9ca3af;
-    flex-shrink: 0;
-  }
-  
-  input {
-    flex: 1;
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 0.875rem;
-  }
+  position: relative;
 }
 
-.filter-select {
-  padding: 0.5rem 0.75rem;
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 0.875rem;
-  background: white;
-  cursor: pointer;
-  
+  box-sizing: border-box;
+  outline: none;
+
   &:focus {
-    outline: none;
     border-color: #3b82f6;
   }
+}
+
+.filter-wrap {
+  min-width: 160px;
+  flex-shrink: 0;
 }
 
 .filters-expanded {
@@ -782,19 +789,18 @@ function conditionClass(condition) {
     gap: 1rem;
   }
 
-  .filters-row {
+  .search-bar {
     flex-direction: column;
   }
 
-  .filter-select {
+  .filter-wrap {
     width: 100%;
-    min-height: 44px;
-    font-size: 16px;
+    min-width: unset;
   }
 
-  .search-field input {
+  .search-input {
     font-size: 16px;
-    min-height: 36px;
+    min-height: 44px;
   }
 
   .toggle-btn {
