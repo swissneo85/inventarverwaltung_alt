@@ -29,7 +29,7 @@
         
         <select v-model="filters.category_id" @change="fetchItems" class="filter-select">
           <option value="">Alle Kategorien</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+          <option v-for="cat in visibleCategories" :key="cat.id" :value="cat.id">
             {{ cat.name }}
           </option>
         </select>
@@ -262,6 +262,12 @@ const canEdit = computed(() => authStore.isEditor)
 const items = ref([])
 const categories = ref([])
 const rooms = ref([])
+
+const visibleCategories = computed(() => {
+  const perms = authStore.categoryPermissions
+  if (!perms) return categories.value
+  return categories.value.filter(c => perms.includes(c.id))
+})
 const loading = ref(false)
 const showFilters = ref(false)
 const viewMode = ref(localStorage.getItem(STORAGE_KEY) || 'list')

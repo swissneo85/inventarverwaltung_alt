@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ImageController;
 use App\Http\Controllers\Api\ItemDocumentController;
+use App\Http\Controllers\Api\UserCategoryPermissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -151,6 +152,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Benutzer
         Route::apiResource('users', UserController::class);
         Route::get('/users/{id}/categories', [UserController::class, 'categories']);
+        Route::get('/users/{id}/category-permissions', [UserCategoryPermissionController::class, 'index']);
+        Route::put('/users/{id}/category-permissions', [UserCategoryPermissionController::class, 'update']);
 
         // Login-Protokoll
         Route::get('/logs/login', [LoginLogController::class, 'index']);

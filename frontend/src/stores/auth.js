@@ -5,6 +5,7 @@ import api from '@/services/api'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(localStorage.getItem('token'))
+  const categoryPermissions = ref(JSON.parse(localStorage.getItem('category_permissions') || 'null'))
   const loading = ref(false)
   const error = ref(null)
 
@@ -20,8 +21,10 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await api.post('/login', { username, password })
       token.value = response.data.data.token
       user.value = response.data.data.user
+      categoryPermissions.value = response.data.data.category_permissions ?? null
       localStorage.setItem('token', token.value)
-      
+      localStorage.setItem('category_permissions', JSON.stringify(categoryPermissions.value))
+
       // API Token setzen
       api.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
       
@@ -43,7 +46,9 @@ export const useAuthStore = defineStore('auth', () => {
     
     token.value = null
     user.value = null
+    categoryPermissions.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('category_permissions')
     delete api.defaults.headers.common['Authorization']
   }
 
@@ -88,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     token,
+    categoryPermissions,
     loading,
     error,
     isAuthenticated,

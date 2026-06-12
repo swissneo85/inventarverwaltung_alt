@@ -15,8 +15,20 @@ class ItemController extends BaseApiController
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = Item::with(['category', 'room', 'box', 'coverImage']);
-        
+
+        // Kategorie-Filter für Viewer mit konfigurierten Berechtigungen
+        if ($user->role === 'viewer') {
+            $allowedCategoryIds = $user->categoryPermissions->pluck('id');
+            if ($allowedCategoryIds->isNotEmpty()) {
+                $query->where(function ($q) use ($allowedCategoryIds) {
+                    $q->whereIn('category_id', $allowedCategoryIds)
+                      ->orWhereNull('category_id');
+                });
+            }
+        }
+
         // Filter
         if ($request->has('room_id')) {
             $query->where('room_id', $request->room_id);

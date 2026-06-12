@@ -48,6 +48,27 @@
             </select>
           </div>
 
+          <!-- Kategorie-Berechtigungen (nur Admin, nur für Viewer) -->
+          <div v-if="authStore.isAdmin && form.role === 'viewer'" class="form-group">
+            <label>Sichtbare Kategorien</label>
+            <p class="field-hint">Leer = alle Kategorien sichtbar</p>
+            <div class="category-checkboxes">
+              <label
+                v-for="category in categories"
+                :key="category.id"
+                class="checkbox-label"
+              >
+                <input
+                  type="checkbox"
+                  :value="category.id"
+                  v-model="selectedCategoryIds"
+                />
+                {{ category.name }}
+              </label>
+              <p v-if="categories.length === 0" class="field-hint">Keine Kategorien vorhanden.</p>
+            </div>
+          </div>
+
           <!-- Aktiv (nur Admin) -->
           <div v-if="authStore.isAdmin && isEdit" class="form-group form-group--checkbox">
             <label class="checkbox-label">
@@ -133,6 +154,9 @@ const deleting = ref(false)
 const loading = ref(!!id)
 const showDeleteConfirm = ref(false)
 
+const categories = ref([])
+const selectedCategoryIds = ref([])
+
 const form = ref({
   name: '',
   username: '',
@@ -148,10 +172,22 @@ const passwordMismatch = computed(() =>
 )
 
 onMounted(async () => {
+  if (authStore.isAdmin) {
+    try {
+      const catRes = await api.get('/categories')
+      categories.value = catRes.data.data || catRes.data
+    } catch {
+      // ignore
+    }
+  }
+
   if (!id) return
   try {
-    const res = await api.get(`/users/${id}`)
-    const u = res.data.data
+    const [userRes, permRes] = await Promise.all([
+      api.get(`/users/${id}`),
+      authStore.isAdmin ? api.get(`/users/${id}/category-permissions`) : Promise.resolve(null),
+    ])
+    const u = userRes.data.data
     form.value = {
       name: u.name,
       username: u.username,
@@ -160,6 +196,10 @@ onMounted(async () => {
       active: u.active,
       password: '',
       passwordConfirm: '',
+    }
+    if (permRes) {
+      const perms = permRes.data.data || permRes.data
+      selectedCategoryIds.value = perms.map(c => c.id)
     }
   } catch {
     toast.error('Benutzer nicht gefunden')
@@ -191,13 +231,21 @@ async function save() {
       payload.password = form.value.password
     }
 
+    let userId = id
     if (isEdit.value) {
       await api.put(`/users/${id}`, payload)
-      toast.success('Benutzer aktualisiert')
     } else {
-      await api.post('/users', payload)
-      toast.success('Benutzer erstellt')
+      const res = await api.post('/users', payload)
+      userId = res.data.data?.id
     }
+
+    if (authStore.isAdmin && form.value.role === 'viewer' && userId) {
+      await api.put(`/users/${userId}/category-permissions`, {
+        category_ids: selectedCategoryIds.value,
+      })
+    }
+
+    toast.success(isEdit.value ? 'Benutzer aktualisiert' : 'Benutzer erstellt')
     router.push({ name: 'Users' })
   } catch {
     // interceptor shows error
@@ -254,6 +302,12 @@ async function doDelete() {
   display: flex; align-items: center; gap: 0.5rem;
   font-size: 0.875rem; color: #374151; cursor: pointer;
   input[type="checkbox"] { width: 16px; height: 16px; accent-color: #3b82f6; cursor: pointer; }
+}
+
+.category-checkboxes {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;
+  background: #f9fafb; max-height: 200px; overflow-y: auto;
 }
 
 .form-actions {

@@ -75,9 +75,19 @@ class User extends Authenticatable
         return $this->hasMany(LoginLog::class);
     }
 
-    // Stub für Stufe 2: kategorie-basierte Berechtigungen
     public function categoryPermissions()
     {
-        return $this->hasMany(\App\Models\UserCategoryPermission::class);
+        return $this->belongsToMany(Category::class, 'user_category_permissions');
+    }
+
+    public function canViewCategory(?int $categoryId): bool
+    {
+        if ($this->isEditor()) return true;
+
+        $permissions = $this->categoryPermissions;
+        if ($permissions->isEmpty()) return true;
+
+        if ($categoryId === null) return true;
+        return $permissions->contains('id', $categoryId);
     }
 }

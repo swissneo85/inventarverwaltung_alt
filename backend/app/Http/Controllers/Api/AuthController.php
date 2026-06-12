@@ -49,10 +49,15 @@ class AuthController extends BaseApiController
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
+        $user->load(['categories', 'categoryPermissions']);
+
         return $this->success([
-            'user' => $user->load('categories'),
+            'user' => $user,
             'token' => $token,
             'roles' => [$user->role],
+            'category_permissions' => $user->role === 'viewer'
+                ? $user->categoryPermissions->pluck('id')
+                : null,
         ], 'Login erfolgreich');
     }
 

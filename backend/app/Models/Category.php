@@ -53,6 +53,11 @@ class Category extends Model
         return $this->belongsToMany(User::class, 'user_categories');
     }
 
+    public function viewerPermissions()
+    {
+        return $this->belongsToMany(User::class, 'user_category_permissions');
+    }
+
     /**
      * Ist dies eine Unterkategorie?
      */
