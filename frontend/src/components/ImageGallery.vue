@@ -1,5 +1,11 @@
 <template>
-  <div class="image-gallery" v-if="!props.readonly || images.length > 0">
+  <div
+    class="image-gallery"
+    v-if="!props.readonly || images.length > 0"
+    @dragover.prevent="!props.readonly && (isDragging = true)"
+    @dragleave.self="isDragging = false"
+    @drop.prevent="!props.readonly && onDrop($event)"
+  >
     <div class="gallery-header">
       <h3>Bilder</h3>
       <div v-if="!props.readonly" class="upload-buttons">
@@ -24,17 +30,14 @@
 
     <!-- Edit mode: drop zone with full controls -->
     <div
-      v-if="!props.readonly"
+      v-if="!props.readonly && (images.length > 0 || isDragging)"
       class="drop-zone"
       :class="{ 'drag-over': isDragging }"
       @dragover.prevent="isDragging = true"
       @dragleave="isDragging = false"
       @drop.prevent="onDrop"
     >
-      <div v-if="images.length === 0" class="empty-state">
-        Bilder hier ablegen oder Schaltflächen oben verwenden
-      </div>
-      <div v-else class="image-grid">
+      <div class="image-grid">
         <div
           v-for="(image, index) in images"
           :key="image.id"
@@ -53,7 +56,7 @@
     </div>
 
     <!-- Readonly mode: plain image grid, no controls -->
-    <div v-else class="image-grid image-grid--readonly">
+    <div v-else-if="props.readonly" class="image-grid image-grid--readonly">
       <div
         v-for="(image, index) in images"
         :key="image.id"
@@ -264,7 +267,6 @@ onMounted(fetchImages)
   transition: border-color 0.2s, background 0.2s;
 }
 .drop-zone.drag-over { border-color: #3b82f6; background: #eff6ff; }
-.empty-state { color: #9ca3af; text-align: center; padding: 2rem 1rem; }
 
 .image-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .image-grid--readonly { margin-top: 0; }
