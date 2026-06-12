@@ -82,6 +82,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/items/{id}/images', fn(Request $r, $id) => app(ImageController::class)->index('items', $id));
     Route::get('/items/{id}/documents', [ItemDocumentController::class, 'index']);
 
+    // Ausgeliehene Gegenstände
+    Route::get('loans', function () {
+        $items = \App\Models\Item::with(['loanedToPerson', 'room', 'box'])
+            ->whereNotNull('loaned_to_person_id')
+            ->orderBy('name')
+            ->get();
+        return response()->json(['success' => true, 'data' => $items]);
+    });
+
     // Personen
     Route::get('persons/all', [PersonController::class, 'all']);
     Route::get('/persons', [PersonController::class, 'index']);
