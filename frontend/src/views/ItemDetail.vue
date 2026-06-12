@@ -39,7 +39,7 @@
         <div class="detail-row"><span>Marke</span><span>{{ item.brand || '–' }}</span></div>
         <div class="detail-row"><span>Modell</span><span>{{ item.model || '–' }}</span></div>
         <div class="detail-row"><span>Seriennummer</span><span>{{ item.serial_number || '–' }}</span></div>
-        <div class="detail-row"><span>Menge</span><span>{{ item.quantity }} {{ item.unit || '' }}</span></div>
+        <div class="detail-row"><span>Menge</span><span>{{ parseFloat(item.quantity) }} {{ item.unit || '' }}</span></div>
       </div>
 
       <div class="card detail-card">

@@ -7,7 +7,6 @@
     @drop.prevent="!props.readonly && onDrop($event)"
   >
     <div class="gallery-header">
-      <h3>Bilder</h3>
       <div v-if="!props.readonly" class="upload-buttons">
         <label class="btn btn-secondary btn-sm" title="Kamera">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">

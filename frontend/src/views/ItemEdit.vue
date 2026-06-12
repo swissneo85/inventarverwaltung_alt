@@ -122,7 +122,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Menge</label>
-              <input v-model="form.quantity" type="number" min="0" step="0.01">
+              <input type="number" step="0.01" min="0" :value="parseFloat(form.quantity)" @input="form.quantity = $event.target.value">
             </div>
             <div class="form-group">
               <label>Einheit</label>
