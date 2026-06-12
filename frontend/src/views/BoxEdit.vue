@@ -72,7 +72,7 @@
       </form>
     </div>
 
-    <div v-if="id" class="danger-zone">
+    <div v-if="id && canDelete" class="danger-zone">
       <button type="button" class="btn-delete" @click="confirmDelete = true">🗑 Box löschen</button>
     </div>
 
@@ -92,15 +92,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
+import { useAuthStore } from '@/stores/auth'
 import ImageGallery from '@/components/ImageGallery.vue'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
+const canDelete = computed(() => authStore.isAdmin)
 
 const id = route.params.id
 const saving = ref(false)

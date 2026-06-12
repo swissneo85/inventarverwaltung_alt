@@ -4,7 +4,7 @@
       <button class="btn btn-secondary btn-back" @click="$router.push({ name: 'Items' })">← Zurück</button>
       <h1 v-if="item">{{ item.display_id }} – {{ item.name }}</h1>
       <h1 v-else-if="!loading">Gegenstand</h1>
-      <div class="header-actions" v-if="item">
+      <div class="header-actions" v-if="item && canEdit">
         <button class="btn btn-primary" @click="$router.push({ name: 'ItemEdit', params: { id: item.id } })">
           Bearbeiten
         </button>
@@ -81,10 +81,13 @@ import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import ImageGallery from '@/components/ImageGallery.vue'
 import DocumentGallery from '@/components/DocumentGallery.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
+const canEdit = computed(() => authStore.isEditor)
 
 const id = route.params.id
 const item = ref(null)

@@ -45,7 +45,7 @@
               <p v-if="item.category">{{ item.category.name }}</p>
             </div>
           </div>
-          <div class="item-actions">
+          <div v-if="canEdit" class="item-actions">
             <div class="assign-selects">
               <SearchableSelect
                 :model-value="item._targetRoom"
@@ -90,7 +90,7 @@
               <p>{{ box.items_count || 0 }} Items</p>
             </div>
           </div>
-          <div class="item-actions">
+          <div v-if="canEdit" class="item-actions">
             <div class="assign-selects">
               <SearchableSelect
                 :model-value="box._targetRoom"
@@ -121,10 +121,13 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import SearchableSelect from '@/components/SearchableSelect.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const toast = useToast()
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
+const canEdit = computed(() => authStore.isEditor)
 
 const activeTab = ref('items')
 const items = ref([])

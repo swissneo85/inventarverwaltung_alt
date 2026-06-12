@@ -3,7 +3,7 @@
     <div class="page-header">
       <button class="btn btn-secondary btn-back" @click="$router.push({ name: 'Rooms' })">← Zurück</button>
       <h1 v-if="room">{{ room.name }}</h1>
-      <div class="header-actions" v-if="room">
+      <div class="header-actions" v-if="room && canEdit">
         <router-link :to="`/rooms/${room.id}/edit`" class="btn btn-primary">Bearbeiten</router-link>
       </div>
     </div>
@@ -65,15 +65,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import ImageGallery from '@/components/ImageGallery.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
+const canEdit = computed(() => authStore.isEditor)
 
 const room = ref(null)
 const boxes = ref([])

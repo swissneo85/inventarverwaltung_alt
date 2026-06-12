@@ -29,8 +29,8 @@
         </form>
       </div>
 
-      <!-- Delete (edit mode only) -->
-      <div v-if="isEdit" class="danger-zone">
+      <!-- Delete (edit mode only, admin only) -->
+      <div v-if="isEdit && canDelete" class="danger-zone">
         <button type="button" class="btn-delete" @click="confirmDelete = true">🗑 Person löschen</button>
       </div>
     </template>
@@ -56,10 +56,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
+const canDelete = computed(() => authStore.isAdmin)
 
 const id = route.params.id
 const isEdit = computed(() => !!id)

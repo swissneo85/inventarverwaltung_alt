@@ -215,7 +215,7 @@
       </div>
 
       <!-- Delete (edit mode only) -->
-      <div v-if="id" class="danger-zone">
+      <div v-if="id && canDelete" class="danger-zone">
         <button type="button" class="btn-delete" @click="confirmDelete = true">🗑 Gegenstand löschen</button>
       </div>
     </template>
@@ -243,10 +243,14 @@ import { useToast } from 'vue-toastification'
 import ImageGallery from '@/components/ImageGallery.vue'
 import SearchableSelect from '@/components/SearchableSelect.vue'
 import DocumentGallery from '@/components/DocumentGallery.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
+const canEdit = computed(() => authStore.isEditor)
+const canDelete = computed(() => authStore.isAdmin)
 
 const id = route.params.id
 const loading = ref(false)

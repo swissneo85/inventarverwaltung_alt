@@ -4,7 +4,7 @@
       <h1>Boxen</h1>
       <div class="header-actions">
         <router-link to="/inbox" class="btn btn-secondary">Inbox</router-link>
-        <router-link to="/boxes/new" class="btn btn-primary">
+        <router-link v-if="canEdit" to="/boxes/new" class="btn btn-primary">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
@@ -78,13 +78,13 @@
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
               </svg>
             </router-link>
-            <router-link :to="`/boxes/${box.id}/edit`" class="row-btn" title="Bearbeiten">
+            <router-link v-if="canEdit" :to="`/boxes/${box.id}/edit`" class="row-btn" title="Bearbeiten">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
               </svg>
             </router-link>
-            <button class="row-btn row-btn-danger" title="Löschen" @click="confirmDelete(box)">
+            <button v-if="canDelete" class="row-btn row-btn-danger" title="Löschen" @click="confirmDelete(box)">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
                 <path d="M10 11v6"></path><path d="M14 11v6"></path>
@@ -153,13 +153,13 @@
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
                       </svg>
                     </router-link>
-                    <router-link :to="`/boxes/${box.id}/edit`" class="row-btn" title="Bearbeiten">
+                    <router-link v-if="canEdit" :to="`/boxes/${box.id}/edit`" class="row-btn" title="Bearbeiten">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                       </svg>
                     </router-link>
-                    <button class="row-btn row-btn-danger" title="Löschen" @click="confirmDelete(box)">
+                    <button v-if="canDelete" class="row-btn row-btn-danger" title="Löschen" @click="confirmDelete(box)">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
                         <path d="M10 11v6"></path><path d="M14 11v6"></path>
@@ -199,12 +199,16 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
 import { debounce } from 'lodash'
+import { useAuthStore } from '@/stores/auth'
 
 const toast = useToast()
+const authStore = useAuthStore()
+const canEdit = computed(() => authStore.isEditor)
+const canDelete = computed(() => authStore.isAdmin)
 const boxes = ref([])
 const loading = ref(true)
 const search = ref('')
