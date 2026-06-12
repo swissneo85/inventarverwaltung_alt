@@ -56,7 +56,7 @@
               <label
                 v-for="category in categories"
                 :key="category.id"
-                class="checkbox-label"
+                class="category-checkbox-row"
               >
                 <input
                   type="checkbox"
@@ -65,7 +65,7 @@
                 />
                 {{ category.name }}
               </label>
-              <p v-if="categories.length === 0" class="field-hint">Keine Kategorien vorhanden.</p>
+              <p v-if="categories.length === 0" class="field-hint" style="padding: 0.625rem 0.875rem; margin: 0;">Keine Kategorien vorhanden.</p>
             </div>
           </div>
 
@@ -305,9 +305,26 @@ async function doDelete() {
 }
 
 .category-checkboxes {
-  display: flex; flex-direction: column; gap: 0.4rem;
-  padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;
-  background: #f9fafb; max-height: 200px; overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.category-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  input[type="checkbox"] { width: 16px; height: 16px; accent-color: #3b82f6; cursor: pointer; flex-shrink: 0; }
+  &:last-child { border-bottom: none; }
+  &:hover { background: #f9fafb; }
 }
 
 .form-actions {
