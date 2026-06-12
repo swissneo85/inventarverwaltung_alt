@@ -137,7 +137,19 @@ const routes = [
   {
     path: '/users',
     name: 'Users',
-    component: () => import('@/views/Users.vue'),
+    component: () => import('@/views/users/UserList.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/users/new',
+    name: 'UserCreate',
+    component: () => import('@/views/users/UserForm.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/users/:id/edit',
+    name: 'UserEdit',
+    component: () => import('@/views/users/UserForm.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {

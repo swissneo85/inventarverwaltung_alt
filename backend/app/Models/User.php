@@ -33,14 +33,28 @@ class User extends Authenticatable
         'last_login_at' => 'datetime',
     ];
 
-    // Rollen: admin, user, viewer
     const ROLE_ADMIN = 'admin';
-    const ROLE_USER = 'user';
+    const ROLE_EDITOR = 'editor';
     const ROLE_VIEWER = 'viewer';
 
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isEditor(): bool
+    {
+        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_EDITOR]);
+    }
+
+    public function canEdit(): bool
+    {
+        return $this->isEditor();
+    }
+
+    public function canDelete(): bool
+    {
+        return $this->isAdmin();
     }
 
     public function categories()
@@ -59,5 +73,11 @@ class User extends Authenticatable
     public function loginLogs()
     {
         return $this->hasMany(LoginLog::class);
+    }
+
+    // Stub für Stufe 2: kategorie-basierte Berechtigungen
+    public function categoryPermissions()
+    {
+        return $this->hasMany(\App\Models\UserCategoryPermission::class);
     }
 }

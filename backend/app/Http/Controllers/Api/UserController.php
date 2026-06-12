@@ -48,7 +48,7 @@ class UserController extends BaseApiController
             'username' => 'required|string|max:255|unique:users,username',
             'email' => 'nullable|email|unique:users,email',
             'password' => ['required', Password::min(8)],
-            'role' => 'required|in:admin,user,viewer',
+            'role' => 'required|in:admin,editor,viewer',
             'categories' => 'nullable|array',
             'categories.*' => 'exists:categories,id',
         ]);
@@ -111,7 +111,7 @@ class UserController extends BaseApiController
 
         // Nur Admin kann Rollen ändern
         if ($request->user()->isAdmin()) {
-            $rules['role'] = 'sometimes|in:admin,user,viewer';
+            $rules['role'] = 'sometimes|in:admin,editor,viewer';
             $rules['active'] = 'sometimes|boolean';
             $rules['categories'] = 'nullable|array';
             $rules['categories.*'] = 'exists:categories,id';
