@@ -24,13 +24,13 @@ const routes = [
     path: '/items/new',
     name: 'ItemCreate',
     component: () => import('@/views/ItemEdit.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/items/:id/edit',
     name: 'ItemEdit',
     component: () => import('@/views/ItemEdit.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/items/:id',
@@ -48,13 +48,13 @@ const routes = [
     path: '/rooms/new',
     name: 'RoomCreate',
     component: () => import('@/views/RoomForm.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/rooms/:id/edit',
     name: 'RoomEdit',
     component: () => import('@/views/RoomForm.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/rooms/:id',
@@ -72,13 +72,13 @@ const routes = [
     path: '/boxes/new',
     name: 'BoxCreate',
     component: () => import('@/views/BoxEdit.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/boxes/:id/edit',
     name: 'BoxEdit',
     component: () => import('@/views/BoxEdit.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/boxes/:id',
@@ -108,25 +108,25 @@ const routes = [
     path: '/persons/new',
     name: 'PersonCreate',
     component: () => import('@/views/persons/PersonForm.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/persons/:id/edit',
     name: 'PersonEdit',
     component: () => import('@/views/persons/PersonForm.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/categories/new',
     name: 'CategoryCreate',
     component: () => import('@/views/CategoryForm.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/categories/:id/edit',
     name: 'CategoryEdit',
     component: () => import('@/views/CategoryForm.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresEditor: true }
   },
   {
     path: '/scan/:token?',
@@ -200,6 +200,10 @@ router.beforeEach(async (to, from, next) => {
     }
     
     if (to.meta.requiresAdmin && !authStore.isAdmin) {
+      return next({ name: 'Dashboard' })
+    }
+
+    if (to.meta.requiresEditor && !authStore.isEditor) {
       return next({ name: 'Dashboard' })
     }
   }
