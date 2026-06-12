@@ -19,7 +19,7 @@
 
     <!-- Stats Grid -->
     <div class="stats-grid">
-      <div class="stat-card">
+      <router-link to="/items" class="stat-card">
         <div class="stat-icon items">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -29,9 +29,9 @@
           <span class="stat-value">{{ stats.items?.total || 0 }}</span>
           <span class="stat-label">Gegenstände</span>
         </div>
-      </div>
-      
-      <div class="stat-card">
+      </router-link>
+
+      <router-link to="/boxes" class="stat-card">
         <div class="stat-icon boxes">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -43,9 +43,9 @@
           <span class="stat-value">{{ stats.boxes?.total || 0 }}</span>
           <span class="stat-label">Boxen</span>
         </div>
-      </div>
-      
-      <div class="stat-card">
+      </router-link>
+
+      <router-link to="/rooms" class="stat-card">
         <div class="stat-icon rooms">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -56,11 +56,11 @@
           <span class="stat-value">{{ stats.rooms || 0 }}</span>
           <span class="stat-label">Räume</span>
         </div>
-      </div>
-      
-      <div class="stat-card">
+      </router-link>
+
+      <router-link to="/categories" class="stat-card">
         <div class="stat-icon categories">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
           </svg>
         </div>
@@ -68,7 +68,7 @@
           <span class="stat-value">{{ stats.categories || 0 }}</span>
           <span class="stat-label">Kategorien</span>
         </div>
-      </div>
+      </router-link>
     </div>
 
     <!-- Warranty Alert -->
@@ -107,20 +107,6 @@
           <span>QR-Code scannen</span>
         </router-link>
         
-        <router-link to="/inbox" class="action-card">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
-            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-          </svg>
-          <span>Inbox</span>
-        </router-link>
-        
-        <router-link to="/rooms" class="action-card">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-          </svg>
-          <span>Räume</span>
-        </router-link>
       </div>
     </div>
 
@@ -252,6 +238,14 @@ onMounted(async () => {
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
   
   .stat-icon {
     width: 48px;
