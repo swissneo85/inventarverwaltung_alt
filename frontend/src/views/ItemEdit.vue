@@ -630,6 +630,10 @@ async function save() {
 @media (max-width: 767px) {
   .form-card { padding: 1rem; }
   .form-row { grid-template-columns: 1fr; }
+  .form-row .form-group { min-width: 0; width: 100%; }
+  .form-row .form-group input,
+  .form-row .form-group select,
+  .form-row .form-group textarea { width: 100%; box-sizing: border-box; }
   .upload-btns { flex-direction: row; }
   .upload-btn { flex: 1; justify-content: center; min-height: 44px; }
   .form-actions {

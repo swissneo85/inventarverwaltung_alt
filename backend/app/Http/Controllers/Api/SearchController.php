@@ -145,21 +145,32 @@ class SearchController extends BaseApiController
         $term = $request->q;
         $results = [];
 
-        // Items (nur Name und ID)
-        $items = Item::where('name', 'like', "{$term}%")
+        // Items — Volltext über Name, Marke, Modell, Beschreibung
+        $items = Item::where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('brand', 'like', "%{$term}%")
+                  ->orWhere('model', 'like', "%{$term}%")
+                  ->orWhere('description', 'like', "%{$term}%");
+            })
             ->limit(10)
-            ->get(['id', 'name'])
-            ->map(function ($item) {
+            ->get(['id', 'name', 'brand', 'model'])
+            ->map(function ($item) use ($term) {
+                $subtitle = null;
+                if ($item->brand || $item->model) {
+                    $subtitle = trim(($item->brand ?? '') . ' ' . ($item->model ?? ''));
+                }
                 return [
                     'type' => 'item',
                     'id' => $item->id,
                     'display_id' => 'I' . $item->id,
                     'name' => $item->name,
+                    'subtitle' => $subtitle ?: null,
                 ];
             });
 
         // Boxen
-        $boxes = Box::where('name', 'like', "{$term}%")
+        $boxes = Box::where('name', 'like', "%{$term}%")
+            ->orWhere('description', 'like', "%{$term}%")
             ->limit(5)
             ->get(['id', 'name'])
             ->map(function ($box) {
@@ -172,7 +183,8 @@ class SearchController extends BaseApiController
             });
 
         // Räume
-        $rooms = Room::where('name', 'like', "{$term}%")
+        $rooms = Room::where('name', 'like', "%{$term}%")
+            ->orWhere('description', 'like', "%{$term}%")
             ->limit(5)
             ->get(['id', 'name'])
             ->map(function ($room) {

@@ -7,13 +7,16 @@
       </div>
       <div class="item-info">
         <h3 class="item-name">{{ item.name }}</h3>
-        <p class="item-location" v-if="locationText">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-          {{ locationText }}
-        </p>
+        <div class="item-meta-row">
+          <span class="item-id-label">{{ item.display_id || 'I' + item.id }}</span>
+          <span v-if="locationText" class="item-location">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {{ locationText }}
+          </span>
+        </div>
         <div class="item-tags" v-if="item.category">
           <span class="tag">{{ item.category.name }}</span>
         </div>
@@ -127,14 +130,31 @@ const locationText = computed(() => {
   margin: 0;
 }
 
+.item-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.item-id-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #3b82f6;
+  font-family: monospace;
+  background: #eff6ff;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
 .item-location {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #6b7280;
-  margin: 0;
-  
+
   svg {
     flex-shrink: 0;
   }

@@ -8,7 +8,7 @@
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Suchen... (R/B/I + Nummer)"
+        placeholder="Suchen..."
         class="search-input"
         @input="handleSearch"
         @keydown.esc="closeResults"
@@ -46,8 +46,9 @@
             class="search-item"
             @click="closeResults"
           >
-            <span class="item-id">I{{ item.id }}</span>
+            <span class="item-id">{{ item.display_id || 'I' + item.id }}</span>
             <span class="item-name">{{ item.name }}</span>
+            <span v-if="item.subtitle" class="item-subtitle">{{ item.subtitle }}</span>
           </router-link>
         </div>
         
@@ -310,6 +311,17 @@ onUnmounted(() => {
 
 .item-name {
   font-size: 0.875rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-subtitle {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  flex-shrink: 0;
 }
 
 .no-results {

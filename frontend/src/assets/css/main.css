@@ -31,6 +31,13 @@ input, textarea, select {
   font-size: inherit;
 }
 
+/* iOS: verhindert Auto-Zoom bei Input-Fokus (font-size muss ≥ 16px sein) */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
